@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ميراكوس كنستريكسون — إدارة الحسابات</title>
+<title>قيصر الشام للحجر والرخام — إدارة الحسابات</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ميراكوس">
+<meta name="apple-mobile-web-app-title" content="قيصر الشام">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#21262B">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -762,7 +762,7 @@
         <input type="file" id="restoreFileInput" accept="application/json" style="display:none;">
         <button class="btn btn-danger" id="btnImportRestore" style="margin-inline-start:8px;">استرجاع من ملف</button>
         <hr style="margin:16px 0; border:none; border-top:1px solid var(--line);">
-        <p style="font-size:13px; color:var(--text-dim); margin-top:0;"><b>النسخة اليومية التلقائية:</b> بتنزّل تلقائيًا (ملفين: Excel + استرجاع) لمجلد التنزيلات (Downloads) بجهازك، أول مرة تفتحي فيها البرنامج كل يوم. هاي مرتبطة بالجهاز والمتصفح يلي تفتحي فيه — مش بتصير من جهاز تاني ما فتحتي منه البرنامج.</p>
+        <p style="font-size:13px; color:var(--text-dim); margin-top:0;"><b>النسخة التلقائية:</b> بتنزّل تلقائيًا (ملفين: Excel + استرجاع) لمجلد التنزيلات (Downloads) بجهازك، أول مرة تفتح فيها البرنامج بعد الساعة 5 مساءً. على الكمبيوتر بتصير <b>كل يوم</b>، وعلى الموبايل بتصير <b>مرة كل أسبوع</b> بس. هاي مرتبطة بالجهاز والمتصفح يلي تفتحي فيه — مش بتصير من جهاز تاني ما فتحتي منه البرنامج.</p>
         <p style="font-size:13px; margin-top:0;">آخر نسخة تلقائية بهالجهاز: <b id="lastDailyBackupLabel" style="color:var(--brass-deep);">—</b></p>
       </div>
 
@@ -1848,6 +1848,8 @@ function exportRestoreJSON(silent){
 document.getElementById('btnExportRestore').addEventListener('click', ()=>exportRestoreJSON(false));
 
 const DAILY_BACKUP_KEY = 'miracos_last_daily_backup';
+const MOBILE_BACKUP_KEY = 'miracos_last_mobile_backup';
+const MOBILE_BACKUP_INTERVAL_DAYS = 7; // أسبوع
 const DAILY_BACKUP_HOUR = 17; // 5 مساءً
 function isMobileDevice(){
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -1855,18 +1857,32 @@ function isMobileDevice(){
 function updateLastDailyBackupLabel(){
   const el = document.getElementById('lastDailyBackupLabel');
   if(!el) return;
-  const last = safeLocal.getItem(DAILY_BACKUP_KEY);
+  const last = safeLocal.getItem(isMobileDevice() ? MOBILE_BACKUP_KEY : DAILY_BACKUP_KEY);
   el.textContent = last || 'لسا ما صارت';
 }
 
+let isRunningDailyBackup = false;
 function runDailyBackupIfNeeded(){
   try{
+    if(isRunningDailyBackup) return;
     const now = new Date();
     if(now.getHours() < DAILY_BACKUP_HOUR) return;
     const today = now.toISOString().slice(0,10);
-    const last = safeLocal.getItem(DAILY_BACKUP_KEY);
-    if(last === today) return;
+    const mobile = isMobileDevice();
+    if(mobile){
+      // على الموبايل: مرة كل أسبوع بس، مش كل يوم
+      const last = safeLocal.getItem(MOBILE_BACKUP_KEY);
+      if(last){
+        const daysSince = Math.floor((now - new Date(last)) / (1000*60*60*24));
+        if(daysSince < MOBILE_BACKUP_INTERVAL_DAYS) return;
+      }
+    }else{
+      // على الكمبيوتر: مرة كل يوم متل ما كانت (بدون تغيير)
+      const last = safeLocal.getItem(DAILY_BACKUP_KEY);
+      if(last === today) return;
+    }
     if(receipts.length === 0 && expenses.length === 0 && invoices.length === 0) return;
+    isRunningDailyBackup = true;
     // نستنى شوية أول ما يفتح البرنامج حتى ما يتزاحمش الباكأب مع تحميل الصفحة نفسها
     setTimeout(()=>{
       try{
@@ -1874,14 +1890,15 @@ function runDailyBackupIfNeeded(){
         setTimeout(()=>{
           try{
             exportRestoreJSON(true);
-            safeLocal.setItem(DAILY_BACKUP_KEY, today);
+            safeLocal.setItem(mobile ? MOBILE_BACKUP_KEY : DAILY_BACKUP_KEY, today);
             updateLastDailyBackupLabel();
-            toast('تم إنشاء نسخة احتياطية يومية تلقائيًا — تفقّدي مجلد التنزيلات');
+            toast(mobile ? 'تم إنشاء نسخة احتياطية أسبوعية تلقائيًا — تفقّدي مجلد التنزيلات' : 'تم إنشاء نسخة احتياطية يومية تلقائيًا — تفقّدي مجلد التنزيلات');
           }catch(err){ console.error('daily backup (restore file) failed', err); }
+          finally{ isRunningDailyBackup = false; }
         }, 700);
-      }catch(err){ console.error('daily backup (excel file) failed', err); }
+      }catch(err){ console.error('daily backup (excel file) failed', err); isRunningDailyBackup = false; }
     }, 3000);
-  }catch(err){ console.error('runDailyBackupIfNeeded failed', err); }
+  }catch(err){ console.error('runDailyBackupIfNeeded failed', err); isRunningDailyBackup = false; }
 }
 setInterval(runDailyBackupIfNeeded, 5 * 60 * 1000);
 
@@ -2347,6 +2364,7 @@ function renderReceiptsTable(){
         <div class="row-actions">
           <button class="btn btn-sm btn-ghost" onclick="viewReceipt('${r.id}')" title="عرض/طباعة">👁</button>
           <button class="btn btn-sm btn-ghost" onclick="editReceipt('${r.id}')" title="تعديل">✎</button>
+          <button class="btn btn-sm btn-ghost" onclick="duplicateReceipt('${r.id}')" title="نسخ (لعمل نسخة تانية بنفس الزبون)">⧉</button>
           <button class="btn btn-sm btn-ghost" onclick="deleteReceipt('${r.id}')" title="حذف">🗑</button>
         </div>
       </td>
@@ -2361,6 +2379,29 @@ document.getElementById('expenseSearch').addEventListener('input', renderExpense
 function editReceipt(id){
   const r = receipts.find(r=>r.id===id);
   if(r) openReceiptModal(r);
+}
+
+function duplicateReceipt(id){
+  const r = receipts.find(r=>r.id===id);
+  if(!r) return;
+  const pseudoReceipt = {
+    id: '',
+    no: getNextReceiptNo(),
+    date: new Date().toISOString().slice(0,10),
+    duration: r.duration || '',
+    name: r.name || '',
+    phone: r.phone || '',
+    address: r.address || '',
+    note: r.note || '',
+    discount: r.discount || '',
+    items: (r.items||[]).map(it=>({qty: it.qty, desc: it.desc, price: it.price, amount: it.amount})),
+    payments: [],
+    measurementTables: r.measurementTables ? JSON.parse(JSON.stringify(r.measurementTables)) : []
+  };
+  openReceiptModal(pseudoReceipt);
+  document.getElementById('rcpId').value = '';
+  document.getElementById('receiptModalTitle').textContent = `نسخة جديدة (من وصل رقم ${r.no})`;
+  toast('نسخة جديدة جاهزة — عدّل نوع البضاعة/الأسعار زي ما بدك واحفظ');
 }
 async function deleteReceipt(id){
   if(!confirm('هل تريد حذف هذا الوصل؟ رح ينحط في سلة المهملات 30 يوم وينشال مبلغه من الدخل فورًا. إذا استرجعته، يرجع المبلغ بتاريخه الأصلي.')) return;
@@ -2542,7 +2583,7 @@ document.getElementById('btnPrintReceipt').addEventListener('click', ()=>window.
 document.getElementById('btnShareReceipt').addEventListener('click', async ()=>{
   const r = receipts.find(r=>r.id===currentViewedReceiptId);
   if(!r) return;
-  const shareTitle = `وصل #${r.no} — ${r.name}`;
+  const shareTitle = `قيصر الشام للحجر والرخام — وصل #${r.no} — ${r.name}`;
 
   viewReceipt(r.id);
   await new Promise(res=>setTimeout(res, 150));
@@ -2564,7 +2605,7 @@ document.getElementById('btnShareReceipt').addEventListener('click', async ()=>{
 
   if(navigator.canShare && navigator.canShare({files:[file]})){
     try{
-      await navigator.share({ files:[file], title: shareTitle });
+      await navigator.share({ files:[file], title: shareTitle, text: shareTitle });
       return;
     }catch(e){
       if(e && e.name === 'AbortError') return;
@@ -2904,6 +2945,7 @@ function renderInvoicesTable(){
         <div class="row-actions">
           <button class="btn btn-sm btn-ghost" onclick="viewInvoice('${inv.id}')" title="عرض/طباعة">👁</button>
           <button class="btn btn-sm btn-ghost" onclick="editInvoice('${inv.id}')" title="تعديل">✎</button>
+          <button class="btn btn-sm btn-ghost" onclick="duplicateInvoice('${inv.id}')" title="نسخ (لعمل نسخة تانية بنفس الزبون)">⧉</button>
           <button class="btn btn-sm btn-ghost" onclick="convertInvoiceToReceipt('${inv.id}')" title="تحويل إلى وصل زبون">➜🧾</button>
           <button class="btn btn-sm btn-ghost" onclick="deleteInvoice('${inv.id}')" title="حذف">🗑</button>
         </div>
@@ -2917,6 +2959,31 @@ function renderInvoicesTable(){
 function editInvoice(id){
   const inv = invoices.find(i=>i.id===id);
   if(inv) openInvoiceModal(inv);
+}
+
+function duplicateInvoice(id){
+  const inv = invoices.find(i=>i.id===id);
+  if(!inv) return;
+  const pseudoInvoice = {
+    id: '',
+    docType: inv.docType,
+    no: nextInvoiceNo(inv.docType),
+    date: new Date().toISOString().slice(0,10),
+    delay: inv.delay || '',
+    clientName: inv.clientName || '',
+    clientAddress: inv.clientAddress || '',
+    clientRC: inv.clientRC || '',
+    clientNIF: inv.clientNIF || '',
+    clientNIS: inv.clientNIS || '',
+    clientPhone: inv.clientPhone || '',
+    note: inv.note || '',
+    items: (inv.items||[]).map(it=>({qty: it.qty, desc: it.desc, unit: it.unit, price: it.price, amount: it.amount})),
+    payments: []
+  };
+  openInvoiceModal(pseudoInvoice);
+  document.getElementById('invId').value = '';
+  document.getElementById('invoiceModalTitle').textContent = `نسخة جديدة (من مستند رقم ${inv.no})`;
+  toast('نسخة جديدة جاهزة — عدّل نوع البضاعة/الأسعار زي ما بدك واحفظ');
 }
 
 function convertInvoiceToReceipt(id){
@@ -3081,7 +3148,7 @@ async function shareInvoiceById(id){
   if(!inv) return;
   const isSimple = inv.docType === 'simple';
   const docLabel = isSimple ? 'عرض سعر' : (inv.docType === 'facture' ? 'Facture' : 'Devis');
-  const shareTitle = `${docLabel} ${inv.no} — ${inv.clientName}`;
+  const shareTitle = `قيصر الشام للحجر والرخام — ${docLabel} ${inv.no} — ${inv.clientName}`;
 
   viewInvoice(id);
   await new Promise(r=>setTimeout(r, 150));
@@ -3104,7 +3171,7 @@ async function shareInvoiceById(id){
 
   if(navigator.canShare && navigator.canShare({files:[file]})){
     try{
-      await navigator.share({ files:[file], title: shareTitle });
+      await navigator.share({ files:[file], title: shareTitle, text: shareTitle });
       return;
     }catch(e){
       if(e && e.name === 'AbortError') return;
