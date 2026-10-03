@@ -145,9 +145,23 @@
   #receiptsTableWrap, #invoicesTableWrap, #expensesTableWrap, #deliveryTrackWrap, #measurementsTableWrap, #paymentHistoryTableWrap, #deliveredCustomersWrap, #priceListGroupedWrap{
     overflow-x:auto; -webkit-overflow-scrolling:touch;
   }
-  #receiptsTableWrap table, #invoicesTableWrap table, #expensesTableWrap table, #deliveryTrackWrap table, #measurementsTableWrap table, #paymentHistoryTableWrap table, #deliveredCustomersWrap table, #priceListGroupedWrap table{
-    min-width:640px;
+  #receiptsTableWrap table td, #invoicesTableWrap table td, #expensesTableWrap table td, #deliveryTrackWrap table td, #measurementsTableWrap table td, #paymentHistoryTableWrap table td, #deliveredCustomersWrap table td, #priceListGroupedWrap table td{
+    white-space:nowrap;
   }
+  td.wrap-cell{ white-space:normal; }
+  /* البيان بالجداول — كمبيوتر: سطرين بالأكتر والباقي "..." (التفاصيل الكاملة بفتح الوصل)، والجدول بيساع بدون تحريك يمين/يسار */
+  .details-wrap{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; white-space:normal; overflow-wrap:break-word; word-break:normal; min-width:140px; line-height:1.5; cursor:pointer; }
+  /* كبسة على البيان بتفتح كل التفاصيل، وكبسة تانية بترجعه سطرين */
+  .details-wrap.expanded{ display:block; -webkit-line-clamp:unset; overflow:visible; }
+  @media (min-width: 701px){
+    #receiptsTableWrap th, #receiptsTableWrap td{ padding:10px 7px; }
+  }
+  /* جوال: سطر واحد مرتب — كبسة عليه بتفتحه كامل وكبسة تانية بتسكره */
+  @media (max-width: 700px){
+    .details-wrap{ display:block; -webkit-line-clamp:unset; width:190px; max-width:190px; min-width:0; white-space:nowrap; text-overflow:ellipsis; cursor:pointer; }
+    .details-wrap.expanded{ white-space:normal; }
+  }
+  @media print{ .details-wrap{ display:block; -webkit-line-clamp:unset; width:auto; max-width:300px; white-space:normal; overflow:visible; } }
   th,td{padding:10px 10px; text-align:right; border-bottom:1px solid var(--line);}
   th{color:var(--text-dim); font-weight:700; font-size:12.5px; background:var(--marble-2);}
   tbody tr:hover{background:var(--marble-2);}
@@ -185,6 +199,24 @@
   .totals-row{display:flex; justify-content:space-between; padding:5px 0; font-size:13.5px;}
   .totals-row.grand{font-weight:800; font-size:15.5px; border-top:1px dashed var(--line); margin-top:6px; padding-top:10px;}
 
+  /* صورة المشاركة = نفس شكل صفحة الطباعة */
+  .receipt-view.share-page{ width:794px; border:none; border-radius:0; padding:38px 40px; margin:0; box-sizing:border-box; }
+  .share-page table{ font-size:14.5px; width:100%; }
+  .share-page th, .share-page td{ padding:8px 8px; }
+  textarea.desc-grow{ resize:none; overflow:hidden; line-height:1.45; min-height:38px; display:block; }
+  /* جوال: كل بند بطاقة — البيان كامل بسطر لحاله فوق، وتحته العدد والسعر والمبلغ */
+  @media (max-width: 700px){
+    table.items-editor:has(> #itemsBody) thead, table.items-editor:has(> #invItemsBody) thead{ display:none; }
+    #itemsBody tr, #invItemsBody tr{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:8px 0; border-bottom:1px solid var(--line); }
+    #itemsBody td, #invItemsBody td{ display:block; padding:0 !important; border:none !important; flex:1 1 0; min-width:0; }
+    #itemsBody td.desc-td, #invItemsBody td.desc-td{ flex:1 1 100%; order:-1; }
+    #itemsBody td:has(> .btn), #invItemsBody td:has(> .btn){ flex:0 0 auto; }
+    #itemsBody td.amount-cell, #invItemsBody td.amount-cell{ flex:1 1 auto; white-space:nowrap; text-align:center; }
+    #itemsBody td:has(> .it-qty), #invItemsBody td:has(> .inv-it-qty){ flex:0 0 72px; }
+    #itemsBody td:has(> .it-price), #invItemsBody td:has(> .inv-it-price){ flex:1 1 80px; }
+    #invItemsBody td:has(> .inv-it-unit){ flex:0 0 70px; }
+    #itemsBody td[colspan], #invItemsBody td[colspan]{ flex:1 1 100%; }
+  }
   .receipt-view{
     background:#fff; border:1px solid var(--line); border-radius:10px; padding:28px 30px; position:relative;
   }
@@ -209,7 +241,72 @@
   .meas-table-box{border:1px solid var(--line); border-radius:9px; padding:12px 14px; margin-top:14px; background:var(--marble-2);}
   .meas-table-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .meas-table-head .meas-title{font-size:14px; font-weight:700; color:var(--brass-deep);}
+  .meas-toggle{cursor:pointer; user-select:none;}
+  .meas-toggle .meas-sum{font-size:12px; font-weight:600; color:var(--text-dim);}
+  .meas-toggle .meas-arrow{display:inline-block; width:14px;}
   .meas-row-grid{display:grid; grid-template-columns:26px minmax(0,1fr) 1fr 1fr 70px 110px 30px; gap:6px; align-items:center; margin-bottom:5px;}
+  .meas-table-box.with-4 .meas-row-grid{grid-template-columns:26px 1fr 1fr 1fr 1fr 70px 110px 30px;}
+  .meas-table-box.with-note .meas-row-grid{grid-template-columns:26px minmax(0,1fr) 1fr 2.2fr 70px 110px 30px;}
+  .meas-note{ text-align:right; }
+  .meas-who{ display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+  .meas-who input{ flex:1 1 180px; padding:7px 10px; font-size:13.5px; }
+  .meas-who input.who-phone{ flex:0 1 170px; }
+  .who-toggle{ display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; flex:none; }
+  .who-toggle button{ border:none; background:#fff; padding:7px 14px; font-family:inherit; font-size:13px; font-weight:700; color:var(--text-dim); cursor:pointer; }
+  .who-toggle button.active{ background:var(--brass); color:#fff; }
+  /* رسمة القطعة + علامة اللف */
+  .piece-draw{ grid-column:1 / -1; padding:4px 0 8px; }
+  .piece-draw:empty{ display:none; }
+  .piece-draw svg{ display:block; margin:0 auto; max-width:100%; }
+  .piece-edge{ cursor:pointer; }
+  .piece-hint{ text-align:center; font-size:11px; color:var(--text-dim); margin-top:2px; }
+  .fac-row-grid{ display:grid; grid-template-columns:26px 100px 1fr 1fr 1fr 64px 2fr 30px; gap:6px; align-items:center; margin-bottom:5px; }
+  .fac-row-grid .piece-draw{ grid-column:1 / -1; }
+  @media (max-width:700px){
+    .fac-row-grid{ grid-template-columns:22px 1fr 1fr 1fr; }
+    .fac-row-grid .meas-note{ grid-column:2 / -1; }
+  }
+  /* ورقة المعمل */
+  .fac-sheet-head{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #222; padding-bottom:10px; margin-bottom:14px; gap:10px; }
+  .fac-ws{ font-size:22px; font-weight:800; }
+  .fac-sub{ font-size:14px; color:#555; margin-top:4px; }
+  .fac-date{ font-size:15px; font-weight:700; direction:ltr; }
+  .fac-cards{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .fac-card{ border:1px solid #cfcfcf; border-radius:8px; padding:10px 12px; break-inside:avoid; page-break-inside:avoid; background:#fff; }
+  .fac-card-head{ display:flex; justify-content:space-between; gap:8px; font-weight:800; font-size:15px; }
+  .fac-card-head .dims{ direction:ltr; }
+  .fac-card-note{ font-size:14px; font-weight:600; color:#222; margin-top:4px; }
+  td.desc-td .item-draws{ margin-top:4px; }
+  .conv-wrap{ position:relative; display:inline-block; }
+  .conv-menu{ display:none; position:absolute; top:calc(100% + 4px); inset-inline-end:0; background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.15); z-index:50; min-width:150px; padding:4px; }
+  .conv-menu.show{ display:block; }
+  .conv-menu button{ display:block; width:100%; text-align:right; background:none; border:none; padding:8px 12px; font-family:inherit; font-size:13.5px; font-weight:600; cursor:pointer; border-radius:6px; color:var(--ink); }
+  .conv-menu button:hover{ background:var(--marble-2, #F2EEE4); }
+  .meas-warn{ background:#FDECEA; color:#B3261E; border:1px solid #F1B8B2; border-radius:8px; padding:8px 12px; font-size:13px; text-align:center; }
+  .corner-dirs{ display:flex; gap:6px; justify-content:center; align-items:center; flex-wrap:wrap; margin-top:6px; font-size:12px; color:var(--text-dim); }
+  .corner-dirs .btn{ padding:4px 9px; font-size:12px; }
+  .corner-dirs .btn.active{ background:var(--brass); color:#fff; border-color:var(--brass); }
+  .intro-row > td{ padding:0 !important; border:none !important; background:none !important; }
+  .receipt-view .print-head-row > td{ border:none !important; }
+  tbody.doc-intro tr.intro-row, tbody.doc-intro tr.intro-row td{ border:none !important; box-shadow:none !important; }
+  td.row-no, th.row-no{ width:34px; text-align:center; color:#777; font-size:12px; }
+  .items-count{ display:inline-block; margin-inline-start:10px; font-size:12.5px; color:var(--text-dim); font-weight:700; }
+  .item-draws{ display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:6px; }
+  .item-draw{ display:inline-block; text-align:center; font-size:11px; color:#555; line-height:1.2; }
+  .item-draw-cap{ font-size:11.5px; color:#333; max-width:200px; margin:0 auto; }
+  .item-draw svg{ display:inline-block; margin:0; transform-origin:top center; width:auto; height:auto; max-height:80px; }
+  .fac-card .fac-draw{ text-align:center; margin-top:8px; }
+  .fac-card svg{ display:inline-block; margin:0; vertical-align:top; } /* html2canvas بيقص الرسمة إذا margin:auto */
+  .fac-extra{ border:1px dashed #bbb; border-radius:8px; padding:8px 12px; margin-top:10px; font-size:14px; font-weight:600; }
+  .fac-legend{ margin-top:14px; font-size:13px; color:#444; display:flex; align-items:center; gap:8px; }
+  .fac-legend i{ display:inline-block; width:34px; height:6px; background:#D32F2F; border-radius:3px; vertical-align:middle; }
+  .fac-legend.item-legend{ margin-top:2px; font-size:11px; }
+  .fac-legend.item-legend i{ width:20px; height:4px; }
+  .fac-legend .lg{ display:inline-flex; align-items:center; gap:6px; margin-inline-end:18px; }
+  .edge-brush{ display:flex; gap:8px; align-items:center; margin:0 0 12px; font-size:13px; color:var(--text-dim); flex-wrap:wrap; }
+  .edge-brush button{ border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px 12px; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+  .edge-brush button i{ display:inline-block; width:22px; height:5px; border-radius:3px; }
+  .edge-brush button.active{ border-color:var(--ink); box-shadow:0 0 0 2px rgba(0,0,0,.08); background:#FFFDF6; }
   .meas-row-grid input[disabled]{background:var(--stone); color:var(--text-dim);}
   .meas-result{font-size:13px; font-weight:700; color:var(--brass-deep); text-align:center;}
   .meas-print-table{width:100%; border-collapse:collapse; font-size:13px; margin-top:6px;}
@@ -233,6 +330,7 @@
       margin:0 !important; padding:0 !important; background:none !important; backdrop-filter:none !important;
     }
     .overlay.show *{ visibility:visible; }
+    body.print-factory-only .overlay.show:not(#factoryViewOverlay){ display:none !important; }
 
     .modal{ max-width:none !important; width:auto !important; height:auto !important; min-height:0 !important; box-shadow:none !important; margin:0 !important; }
     .modal-head, .modal-foot{ display:none !important; }
@@ -247,6 +345,9 @@
     tfoot{ display:table-footer-group; }
     tr{ page-break-inside:avoid; page-break-after:auto; }
     .print-head-row td{ padding:0 !important; border:none !important; }
+    /* أكتر من 20 بند: بيكمّل على صفحة تانية، والرأس (اللوغو ورقم الوصل) بيتكرر بكل صفحة، وتحت: صفحة 1 من 2 */
+    tbody tr{ break-inside:avoid; page-break-inside:avoid; }
+    body.print-multipage .overlay.show .modal{ page: multi; }
 
     .receipt-view .receipt-top{ padding-bottom:12px !important; margin-bottom:12px !important; }
     .receipt-brand img{ width:80px !important; height:80px !important; }
@@ -272,6 +373,7 @@
       color-adjust:exact !important;
     }
     @page{ margin:10mm; size:auto; }
+    @page multi{ margin:10mm 10mm 14mm; @bottom-center{ content: "صفحة " counter(page) " من " counter(pages); font-family: Arial, sans-serif; font-size:11px; color:#555; } }
   }
 
   @media (max-width: 900px){
@@ -297,6 +399,9 @@
     }
     .meas-row-grid > *:nth-child(n+5){ grid-column:span 1; }
     .meas-row-grid input, .meas-row-grid .meas-result{ width:100%; min-width:0; }
+    .meas-table-box.with-note .meas-row-grid{ grid-template-columns:22px 1fr 1fr; }
+    .meas-table-box.with-4 .meas-row-grid{ grid-template-columns:22px 1fr 1fr; }
+    .meas-row-grid .meas-note{ grid-column:2 / -1; }
   }
   @media (max-width: 420px){
     .stats-grid.cols-5, .stats-grid.cols-3{grid-template-columns:1fr;}
@@ -535,17 +640,23 @@
       </div>
 
       <div class="panel">
-        <div class="grid2">
-          <div class="field">
-            <label>اسم الزبون</label>
-            <input type="text" id="measCustomerName" placeholder="مثلا: احمد بلحاج">
+        <!-- سطر واحد صغير: زبون/معمل (الافتراضي زبون) + الاسم + الهاتف -->
+        <div class="meas-who">
+          <div class="who-toggle">
+            <button type="button" class="active" data-who="customer">زبون</button>
+            <button type="button" data-who="workshop">معمل</button>
           </div>
-          <div class="field">
-            <label>الهاتف</label>
-            <input type="text" id="measCustomerPhone" placeholder="0555 00 00 00">
-          </div>
+          <input type="text" id="measCustomerName" autocomplete="off" placeholder="اسم الزبون">
+          <input type="text" id="measWorkshop" autocomplete="off" placeholder="اسم المعمل" style="display:none;">
+          <input type="text" id="measCustomerPhone" autocomplete="off" placeholder="الهاتف" class="who-phone">
         </div>
 
+        <div class="edge-brush">
+          <span>علامة الحافة:</span>
+          <button type="button" class="active" data-brush="a"><i style="background:#D32F2F"></i> اروندي</button>
+          <button type="button" data-brush="s"><i style="background:#2E9E4F"></i> شطفة</button>
+          <span style="font-size:12px;">— اختار، بعدين اكبس على الأضلاع بالرسمة</span>
+        </div>
         <div id="measTablesWrap"></div>
         <div id="measTotalsSummary" style="display:flex; gap:14px; flex-wrap:wrap; margin-top:14px;"></div>
 
@@ -553,12 +664,18 @@
           <button class="btn" id="btnMeasAddSq">+ جدول متر مربع</button>
           <button class="btn" id="btnMeasAddLen">+ جدول متر طول</button>
           <button class="btn" id="btnMeasAddCube">+ جدول متر مكعب</button>
+          <button class="btn" id="btnMeasAddCol">+ جدول عامود</button>
+          <button class="btn" id="btnMeasAddCircle">+ جدول دوائر</button>
+          <button class="btn" id="btnMeasAddCorner">+ جدول زوايا</button>
         </div>
 
         <div style="display:flex; gap:8px; margin-top:16px; border-top:1px solid var(--line); padding-top:14px; flex-wrap:wrap;">
           <button class="btn btn-primary" id="btnMeasSaveOnly">حفظ فقط</button>
           <button class="btn btn-primary" id="btnMeasSavePrint">حفظ وطباعة</button>
-          <button class="btn btn-primary" id="btnMeasConvertReceipt">تحويل لوصل دفع</button>
+          <button class="btn btn-primary" id="btnMeasConvertReceipt" style="display:none;">تحويل لوصل دفع</button>
+          <button class="btn btn-primary" id="btnMeasConvertQuote" style="display:none;">تحويل لعرض سعر</button>
+          <span class="conv-wrap"><button type="button" class="btn btn-primary" id="btnConvCalc">⇄ تحويل إلى</button><div class="conv-menu"></div></span>
+          <button class="btn" id="btnMeasShare">للمعمل (مشاركة / طباعة)</button>
         </div>
       </div>
 
@@ -762,7 +879,7 @@
         <input type="file" id="restoreFileInput" accept="application/json" style="display:none;">
         <button class="btn btn-danger" id="btnImportRestore" style="margin-inline-start:8px;">استرجاع من ملف</button>
         <hr style="margin:16px 0; border:none; border-top:1px solid var(--line);">
-        <p style="font-size:13px; color:var(--text-dim); margin-top:0;"><b>النسخة التلقائية:</b> بتنزّل تلقائيًا (ملفين: Excel + استرجاع) لمجلد التنزيلات (Downloads) بجهازك، أول مرة تفتح فيها البرنامج بعد الساعة 5 مساءً. على الكمبيوتر بتصير <b>كل يوم</b>، وعلى الموبايل بتصير <b>مرة كل أسبوع</b> بس. هاي مرتبطة بالجهاز والمتصفح يلي تفتحي فيه — مش بتصير من جهاز تاني ما فتحتي منه البرنامج.</p>
+        <p style="font-size:13px; color:var(--text-dim); margin-top:0;"><b>النسخة التلقائية:</b> بتنزّل تلقائيًا (ملفين: Excel + استرجاع) لمجلد التنزيلات (Downloads) بجهازك، أول مرة تفتح فيها البرنامج بعد الساعة 5 مساءً. على الكمبيوتر بتصير <b>كل يوم</b>. على الموبايل <b>ما في نسخة تلقائية</b> — إذا بدك نسخة من الموبايل استعمل الأزرار فوق. هاي مرتبطة بالجهاز والمتصفح يلي تفتحي فيه — مش بتصير من جهاز تاني ما فتحتي منه البرنامج.</p>
         <p style="font-size:13px; margin-top:0;">آخر نسخة تلقائية بهالجهاز: <b id="lastDailyBackupLabel" style="color:var(--brass-deep);">—</b></p>
       </div>
 
@@ -786,7 +903,12 @@
   <div class="modal" style="max-width:760px;">
     <div class="modal-head">
       <h3 id="receiptModalTitle">وصل دفع جديد</h3>
-      <button class="close-x" data-close="receiptOverlay">×</button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="btn btn-sm" id="btnReceiptEditToFactory" style="display:none; font-size:12px; padding:4px 10px;" title="ورقة القياسات للمعمل بدون أسعار">للمعمل</button>
+        <button class="btn btn-sm" id="btnReceiptToQuote" style="display:none;">➜📄 عرض سعر</button>
+        <span class="conv-wrap"><button type="button" class="btn btn-sm" id="btnConvReceiptEdit" style="font-size:12px; padding:4px 10px;">⇄ تحويل</button><div class="conv-menu"></div></span>
+        <button class="close-x" data-close="receiptOverlay">×</button>
+      </div>
     </div>
     <div class="modal-body">
       <input type="hidden" id="rcpId">
@@ -796,8 +918,8 @@
         <div class="field"><label>مدة التسليم (بالأيام)</label><input type="number" id="rcpDuration" min="0" placeholder="مثال: 15"></div>
       </div>
       <div class="grid3">
-        <div class="field"><label>الاسم</label><input type="text" id="rcpName"></div>
-        <div class="field"><label>الهاتف</label><input type="text" id="rcpPhone"></div>
+        <div class="field" style="position:relative;"><label>الاسم</label><input type="text" id="rcpName" autocomplete="off"></div>
+        <div class="field" style="position:relative;"><label>الهاتف</label><input type="text" id="rcpPhone" autocomplete="off"></div>
         <div class="field"><label>العنوان</label><input type="text" id="rcpAddress"></div>
       </div>
 
@@ -806,7 +928,7 @@
         <thead><tr><th style="width:90px">العدد</th><th>النوع والتفاصيل *</th><th style="width:100px">السعر</th><th style="width:100px">المبلغ</th><th style="width:30px"></th><th style="width:36px"></th></tr></thead>
         <tbody id="itemsBody"></tbody>
       </table>
-      <button class="btn btn-sm" id="btnAddItemRow" style="margin-top:8px;">+ إضافة سطر</button>
+      <button class="btn btn-sm" id="btnAddItemRow" style="margin-top:8px;">+ إضافة سطر</button><span class="items-count" id="rcpItemsCount"></span>
 
       <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
         <label style="margin:0; white-space:nowrap;">خصم (اختياري)</label>
@@ -841,13 +963,15 @@
         <textarea id="rcpNote" rows="2"></textarea>
       </div>
 
-      <hr style="margin:16px 0; border:none; border-top:1px solid var(--line);">
-      <label style="margin-bottom:8px;">جداول القياسات المرفقة (اختياري)</label>
+      <!-- جداول القياسات المرفقة: مخفية (كل التفاصيل صارت بالرسمات تحت البنود)، والبيانات بتضل محفوظة -->
+      <div style="display:none;">
       <div id="rcpMeasTablesWrap"></div>
       <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
         <button type="button" class="btn btn-sm" id="btnRcpMeasAddSq">+ جدول متر مربع</button>
         <button type="button" class="btn btn-sm" id="btnRcpMeasAddLen">+ جدول متر طول</button>
         <button type="button" class="btn btn-sm" id="btnRcpMeasAddCube">+ جدول متر مكعب</button>
+        <button type="button" class="btn btn-sm" id="btnRcpMeasAddCol">+ جدول عامود</button>
+      </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -863,6 +987,8 @@
     <div class="modal-head">
       <h3>عرض الوصل</h3>
       <div style="display:flex; gap:8px;">
+        <span class="conv-wrap"><button type="button" class="btn btn-sm" id="btnConvReceiptView">⇄ تحويل</button><div class="conv-menu"></div></span>
+        <button class="btn btn-sm" id="btnReceiptToFactory">للمعمل</button>
         <button class="btn btn-sm" id="btnShareReceipt">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
           مشاركة
@@ -893,7 +1019,10 @@
   <div class="modal" style="max-width:780px;">
     <div class="modal-head">
       <h3 id="invoiceModalTitle">فاتورة جديدة</h3>
-      <button class="close-x" data-close="invoiceOverlay">×</button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="conv-wrap"><button type="button" class="btn btn-sm" id="btnConvInvoiceEdit" style="font-size:12px; padding:4px 10px;">⇄ تحويل</button><div class="conv-menu"></div></span>
+        <button class="close-x" data-close="invoiceOverlay">×</button>
+      </div>
     </div>
     <div class="modal-body">
       <input type="hidden" id="invId">
@@ -917,8 +1046,8 @@
 
       <label style="margin-bottom:8px;" id="invClientSectionLabel">Informations Client</label>
       <div class="grid3">
-        <div class="field"><label id="invClientNameLabel">الاسم / Société</label><input type="text" id="invClientName"></div>
-        <div class="field"><label>الهاتف</label><input type="text" id="invClientPhone"></div>
+        <div class="field" style="position:relative;"><label id="invClientNameLabel">الاسم / Société</label><input type="text" id="invClientName" autocomplete="off"></div>
+        <div class="field" style="position:relative;"><label>الهاتف</label><input type="text" id="invClientPhone" autocomplete="off"></div>
         <div class="field"><label id="invClientAddressLabel">Adresse</label><input type="text" id="invClientAddress"></div>
       </div>
       <div class="grid3" id="invClientLegalFields">
@@ -940,7 +1069,7 @@
         </tr></thead>
         <tbody id="invItemsBody"></tbody>
       </table>
-      <button class="btn btn-sm" id="btnAddInvoiceItemRow" style="margin-top:8px;">+ <span id="invAddLineLabel">Ajouter une ligne</span></button>
+      <button class="btn btn-sm" id="btnAddInvoiceItemRow" style="margin-top:8px;">+ <span id="invAddLineLabel">Ajouter une ligne</span></button><span class="items-count" id="invItemsCount"></span>
 
       <div class="totals-box">
         <div class="totals-row" id="invHTRow"><span id="invHTLabel">Montant HT</span><span id="invHTDisplay">0 دج</span></div>
@@ -979,7 +1108,9 @@
     <div class="modal-head">
       <h3 id="viewInvoiceTitle">Document</h3>
       <div style="display:flex; gap:8px;">
-        <button class="btn btn-sm" id="btnConvertInvoiceFromView">➜🧾 تحويل إلى وصل</button>
+        <button class="btn btn-sm" id="btnConvertInvoiceFromView" style="display:none;">➜🧾 تحويل إلى وصل</button>
+        <span class="conv-wrap"><button type="button" class="btn btn-sm" id="btnConvInvoiceView">⇄ تحويل</button><div class="conv-menu"></div></span>
+        <button class="btn btn-sm" id="btnInvoiceToFactory">للمعمل</button>
         <button class="btn btn-sm" id="btnShareInvoice">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
           مشاركة
@@ -1016,10 +1147,15 @@
 </div>
 
 <div class="overlay" id="measurementsViewOverlay">
-  <div class="modal" style="max-width:760px;">
+  <div class="modal" style="max-width:820px;">
     <div class="modal-head">
       <h3>عرض القياسات</h3>
       <div style="display:flex; gap:8px;">
+        <button class="btn btn-sm" id="btnEditMeasurementsView">✏️ تعديل</button>
+        <button class="btn btn-sm" id="btnMeasViewToReceipt" style="display:none;">تحويل لوصل</button>
+        <button class="btn btn-sm" id="btnMeasViewToQuote" style="display:none;">تحويل لعرض سعر</button>
+        <span class="conv-wrap"><button type="button" class="btn btn-sm" id="btnConvMeasView">⇄ تحويل</button><div class="conv-menu"></div></span>
+        <button class="btn btn-sm" id="btnShareMeasurementsView">للمعمل</button>
         <button class="btn btn-sm" id="btnPrintMeasurementsView">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M6 9V3h12v6M6 18h12v4H6v-4z"/><rect x="6" y="11" width="12" height="7"/></svg>
           طباعة
@@ -1029,6 +1165,23 @@
     </div>
     <div class="modal-body">
       <div class="receipt-view" id="measurementsPrintArea"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="factoryViewOverlay">
+  <div class="modal" style="max-width:820px;">
+    <div class="modal-head">
+      <h3>ورقة المعمل</h3>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="facViewWorkshop" placeholder="اسم المعمل" autocomplete="off" style="width:150px; padding:6px 10px; font-size:13px;">
+        <button class="btn btn-sm" id="btnFacViewShare">مشاركة</button>
+        <button class="btn btn-sm" id="btnFacViewPrint">طباعة</button>
+        <button class="close-x" data-close="factoryViewOverlay">×</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="receipt-view" id="factoryPrintArea"></div>
     </div>
   </div>
 </div>
@@ -1095,7 +1248,9 @@ const DEFAULT_SETTINGS = {
   bank: "AL SALAM BANK 03801605325215600131",
   email: "miracus.2021@gmail.com",
   commissionPercent: 10,
-  logo: LOGO_B64
+  logo: LOGO_B64,
+  lastDailyBackupDate: '',
+  lastMobileBackupDate: ''
 };
 
 let receipts = [];
@@ -1580,7 +1735,18 @@ document.getElementById('btnDisconnectFirebase').addEventListener('click', ()=>{
 });
 
 function uid(){ return 'id' + Date.now() + Math.floor(Math.random()*1000); }
-function fmt(n){ return (Number(n)||0).toLocaleString('ar-DZ-u-nu-latn') + ' دج'; }
+// تنسيق الأرقام يدوياً (أرقام لاتينية دايماً 0-9) — بعض الأجهزة كانت تطلع أرقام عربية ٠١٢ من إعدادات المتصفح
+function fmtNumLatn(n, maxFrac){
+  n = Number(n)||0; if(maxFrac===undefined) maxFrac = 3;
+  const neg = n < 0;
+  let [i, f] = Math.abs(n).toFixed(maxFrac).split('.');
+  f = (f||'').replace(/0+$/,'');
+  i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return (neg?'-':'') + i + (f ? ','+f : '');
+}
+function fmtDateLatn(d){ d = d instanceof Date ? d : new Date(d); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
+function fmtTimeLatn(d){ d = d instanceof Date ? d : new Date(d); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+function fmt(n){ return fmtNumLatn(n) + ' دج'; }
 function toast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1731,6 +1897,14 @@ function doLogin(){
   });
 }
 document.getElementById('btnLogin').addEventListener('click', doLogin);
+// منع اقتراحات عناوين Google/المتصفح بخانات البرنامج (ما عدا تسجيل الدخول)
+function disableBrowserAutofill(el){
+  if(!el || el.tagName!=='INPUT' || el.id==='loginUsername' || el.type==='password') return;
+  if(['text','tel','email','search',''].includes(el.type)) el.setAttribute('autocomplete','nofill');
+}
+document.querySelectorAll('input').forEach(disableBrowserAutofill);
+document.addEventListener('focusin', e=>disableBrowserAutofill(e.target), true);
+
 document.getElementById('loginPassword').addEventListener('keydown', (e)=>{ if(e.key==='Enter') doLogin(); });
 document.getElementById('loginUsername').addEventListener('keydown', (e)=>{ if(e.key==='Enter') doLogin(); });
 
@@ -1760,75 +1934,202 @@ if(btnLogoutApp){
   });
 }
 
+// ---------- كاتب ملف Excel حقيقي (.xlsx) بدون مكتبات — بدل ملف HTML يلي كان يطلع تحذير بالإكسل ----------
+const XLSX_CRC_TABLE = (()=>{ const t = new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); t[n]=c>>>0; } return t; })();
+function xlsxCrc32(bytes){ let c = 0xFFFFFFFF; for(let i=0;i<bytes.length;i++) c = XLSX_CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c>>>8); return (c ^ 0xFFFFFFFF)>>>0; }
+function xlsxZip(files){ // files: [{name, text}] — ضغط "store" بدون تصغير
+  const enc = new TextEncoder(); const parts = []; const central = []; let offset = 0;
+  files.forEach(f=>{
+    const name = enc.encode(f.name), data = enc.encode(f.text), crc = xlsxCrc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0x0800,true); lh.setUint16(8,0,true);
+    lh.setUint16(10,0,true); lh.setUint16(12,0x21,true); lh.setUint32(14,crc,true); lh.setUint32(18,data.length,true);
+    lh.setUint32(22,data.length,true); lh.setUint16(26,name.length,true); lh.setUint16(28,0,true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true); ch.setUint16(8,0x0800,true); ch.setUint16(10,0,true);
+    ch.setUint16(12,0,true); ch.setUint16(14,0x21,true); ch.setUint32(16,crc,true); ch.setUint32(20,data.length,true); ch.setUint32(24,data.length,true);
+    ch.setUint16(28,name.length,true); ch.setUint16(30,0,true); ch.setUint16(32,0,true); ch.setUint16(34,0,true); ch.setUint16(36,0,true);
+    ch.setUint32(38,0,true); ch.setUint32(42,offset,true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + data.length;
+  });
+  const cdSize = central.reduce((s,a)=>s+a.length,0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true); end.setUint16(8,files.length,true); end.setUint16(10,files.length,true);
+  end.setUint32(12,cdSize,true); end.setUint32(16,offset,true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function xlsxEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function xlsxCol(i){ return String.fromCharCode(65+i); }
+// rows: [{height?, cells:[{v, s, span, f}]}] — كل صف 6 أعمدة (A..F)
+function buildXlsx(rows, colWidths){
+  const merges = []; let sheetRows = '';
+  rows.forEach((row, ri)=>{
+    const r = ri+1; let col = 0; let cellsXml = '';
+    (row.cells||[]).forEach(c=>{
+      const span = c.span||1, ref = xlsxCol(col)+r, s = c.s||0;
+      if(c.f){ cellsXml += `<c r="${ref}" s="${s}"><f>${xlsxEsc(c.f)}</f><v>${Number(c.v)||0}</v></c>`; }
+      else if(typeof c.v === 'number'){ cellsXml += `<c r="${ref}" s="${s}"><v>${c.v}</v></c>`; }
+      else if(c.v!==undefined && c.v!==''){ cellsXml += `<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xlsxEsc(c.v)}</t></is></c>`; }
+      else { cellsXml += `<c r="${ref}" s="${s}"/>`; }
+      for(let k=1;k<span;k++) cellsXml += `<c r="${xlsxCol(col+k)}${r}" s="${s}"/>`;
+      if(span>1) merges.push(`${ref}:${xlsxCol(col+span-1)}${r}`);
+      col += span;
+    });
+    sheetRows += `<row r="${r}"${row.height?` ht="${row.height}" customHeight="1"`:''}>${cellsXml}</row>`;
+  });
+  const cols = colWidths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
+  const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
+<sheetViews><sheetView rightToLeft="1" workbookViewId="0"/></sheetViews>
+<sheetFormatPr defaultRowHeight="20"/>
+<cols>${cols}</cols>
+<sheetData>${sheetRows}</sheetData>
+${merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}
+<printOptions horizontalCentered="1"/>
+<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.6" header="0.3" footer="0.3"/>
+<pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/>
+<headerFooter><oddFooter>&amp;C&amp;P / &amp;N</oddFooter></headerFooter>
+</worksheet>`;
+  const B = '<border><left style="thin"><color rgb="FF999999"/></left><right style="thin"><color rgb="FF999999"/></right><top style="thin"><color rgb="FF999999"/></top><bottom style="thin"><color rgb="FF999999"/></bottom><diagonal/></border>';
+  const fill = rgb => `<fill><patternFill patternType="solid"><fgColor rgb="FF${rgb}"/><bgColor indexed="64"/></patternFill></fill>`;
+  const xf = (font, fillId, border, h, num) => `<xf numFmtId="${num||0}" fontId="${font}" fillId="${fillId}" borderId="${border}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"${num?' applyNumberFormat="1"':''}><alignment horizontal="${h}" vertical="center" wrapText="1" readingOrder="2"/></xf>`;
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0"/></numFmts>
+<fonts count="7">
+<font><sz val="11"/><name val="Arial"/></font>
+<font><b/><sz val="16"/><name val="Arial"/></font>
+<font><sz val="10"/><color rgb="FF666666"/><name val="Arial"/></font>
+<font><b/><sz val="11"/><name val="Arial"/></font>
+<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Arial"/></font>
+<font><b/><sz val="11"/><color rgb="FFB3261E"/><name val="Arial"/></font>
+<font><b/><sz val="13"/><name val="Arial"/></font>
+</fonts>
+<fills count="7"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>${fill('ECE7DC')}${fill('B08D3E')}${fill('F2EEE4')}${fill('E3EEE9')}${fill('F3E2E0')}</fills>
+<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>${B}</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="15">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+${xf(1,0,0,'center')}
+${xf(2,0,0,'center')}
+${xf(3,2,1,'right')}
+${xf(4,3,1,'center')}
+${xf(0,0,1,'right')}
+${xf(0,0,1,'center')}
+${xf(0,0,1,'center',164)}
+${xf(3,4,1,'right')}
+${xf(3,4,1,'center',164)}
+${xf(6,5,1,'right')}
+${xf(6,5,1,'center',164)}
+${xf(6,6,1,'right')}
+${xf(6,6,1,'center',164)}
+${xf(5,0,1,'center',164)}
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+  const files = [
+    {name:'[Content_Types].xml', text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+    {name:'_rels/.rels', text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+    {name:'xl/workbook.xml', text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="التقرير" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="124519" fullCalcOnLoad="1"/></workbook>`},
+    {name:'xl/_rels/workbook.xml.rels', text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+    {name:'xl/styles.xml', text:styles},
+    {name:'xl/worksheets/sheet1.xml', text:sheet}
+  ];
+  return xlsxZip(files);
+}
+
 function exportExcelReport(silent){
   try{
-    const fmt2 = (n)=> (Number(n)||0).toLocaleString('ar-DZ-u-nu-latn');
-    const th = (text, colspan)=>`<th colspan="${colspan||1}" style="border:1px solid #444; background:#B08D3E; color:#fff; padding:6px 10px; font-weight:bold; text-align:center;">${text}</th>`;
-    const td = (text, opts)=>{
-      opts = opts || {};
-      const align = opts.align || 'center';
-      const bold = opts.bold ? 'font-weight:bold;' : '';
-      const bg = opts.bg || '#fff';
-      return `<td colspan="${opts.colspan||1}" style="border:1px solid #999; background:${bg}; padding:5px 10px; text-align:${align}; ${bold}">${text}</td>`;
-    };
-    const sectionTitle = (text)=>`<tr>${td(text,{colspan:6, bold:true, bg:'#ECE7DC', align:'right'})}</tr>`;
-    const blankRow = ()=>`<tr>${td('',{colspan:6, bg:'#fff'})}</tr>`;
+    // أرقام الستايلات (راجع cellXfs بـ buildXlsx)
+    const S = {title:1, sub:2, section:3, head:4, txtR:5, txtC:6, num:7, totLbl:8, totNum:9, netPosLbl:10, netPosNum:11, netNegLbl:12, netNegNum:13, numRed:14};
+    const rows = [];
+    const add = (cells, height)=>{ rows.push({cells, height}); return rows.length; };
+    const blank = ()=>add([{v:'', span:6}]);
 
-    let rows = '';
-    rows += `<tr><td colspan="6" style="text-align:center; font-size:18px; font-weight:bold; padding:10px; border:1px solid #444;">${settings.companyName||'ميراكوس كنستريكسون'}</td></tr>`;
-    rows += `<tr><td colspan="6" style="text-align:center; font-size:13px; padding:6px; border:1px solid #999; color:#555;">تقرير مالي — ${new Date().toLocaleDateString('ar-DZ-u-nu-latn')}</td></tr>`;
-    rows += blankRow();
+    // الحسابات بنفس طريقة صفحة التقارير بالبرنامج
+    const commissionPercent = Number(settings.commissionPercent)||0;
+    let totalIncomeInvoiced = 0, totalIncomePaid = 0, totalExpenses = 0;
+    receipts.forEach(r=>{ totalIncomeInvoiced += Number(r.total)||0; totalIncomePaid += getReceiptPayments(r).reduce((s,p)=>s+(Number(p.amount)||0),0); });
+    expenses.forEach(e=>{ totalExpenses += Number(e.amount)||0; });
+    const commission = totalIncomePaid * commissionPercent/100;
+    const net = totalIncomePaid - commission - totalExpenses;
 
-    rows += sectionTitle('قسم الدخل — الزبائن');
-    rows += `<tr>${th('رقم الوصل')}${th('التاريخ')}${th('الاسم')}${th('المجموع')}${th('المدفوع')}${th('الباقي')}</tr>`;
-    let totalIncomeInvoiced = 0, totalIncomePaid = 0;
+    add([{v: settings.companyName||'ميراكوس كنستريكسون', s:S.title, span:6}], 30);
+    add([{v:`تقرير مالي — ${new Date().toISOString().slice(0,10).split('-').reverse().join('/')}`, s:S.sub, span:6}]);
+    blank();
+
+    // ===== جدول الملخص: الدخل، المصروف، العمولة، الصافي =====
+    add([{v:'الملخص', s:S.section, span:6}], 24);
+    add([{v:'البيان', s:S.head, span:4},{v:'المبلغ (دج)', s:S.head, span:2}], 22);
+    const sumIncomeRow = rows.length+1;
+    // الخلايا رح تتعبّى بالمعادلات بعد ما نعرف أرقام صفوف الجداول التحت
+    const summaryIdx = rows.length;
+    add([]); add([]); add([]); add([]);
+    blank();
+
+    // ===== قسم الدخل =====
+    add([{v:'قسم الدخل — الزبائن', s:S.section, span:6}], 24);
+    add([{v:'رقم الوصل',s:S.head},{v:'التاريخ',s:S.head},{v:'الاسم',s:S.head},{v:'المجموع',s:S.head},{v:'المدفوع',s:S.head},{v:'الباقي',s:S.head}], 22);
+    const incFirst = rows.length+1;
     receipts.forEach(r=>{
       const paid = getReceiptPayments(r).reduce((s,p)=>s+(Number(p.amount)||0),0);
       const total = Number(r.total)||0;
-      totalIncomeInvoiced += total;
-      totalIncomePaid += paid;
-      rows += `<tr>${td(r.no||'')}${td(r.date||'')}${td(r.name||'', {align:'right'})}${td(fmt2(total))}${td(fmt2(paid))}${td(fmt2(total-paid))}</tr>`;
+      const rn = rows.length+1;
+      add([{v:String(r.no||''),s:S.txtC},{v:r.date||'',s:S.txtC},{v:r.name||'',s:S.txtR},{v:total,s:S.num},{v:paid,s:S.num},{v:total-paid,s:S.num,f:`D${rn}-E${rn}`}]);
     });
-    rows += `<tr>${td('',{colspan:2})}${td('إجمالي الدخل',{bold:true, bg:'#F2EEE4', align:'right'})}${td(fmt2(totalIncomeInvoiced),{bold:true, bg:'#F2EEE4'})}${td(fmt2(totalIncomePaid),{bold:true, bg:'#F2EEE4'})}${td(fmt2(totalIncomeInvoiced-totalIncomePaid),{bold:true, bg:'#F2EEE4'})}</tr>`;
-    rows += blankRow();
+    const incLast = Math.max(rows.length, incFirst);
+    const incTotRow = rows.length+1;
+    const sumF = (col, a, b) => b>=a && receipts.length ? `SUM(${col}${a}:${col}${b})` : '0';
+    add([{v:'',s:S.totLbl,span:2},{v:'إجمالي الدخل',s:S.totLbl},
+      {v:totalIncomeInvoiced,s:S.totNum,f:sumF('D',incFirst,incLast)},
+      {v:totalIncomePaid,s:S.totNum,f:sumF('E',incFirst,incLast)},
+      {v:totalIncomeInvoiced-totalIncomePaid,s:S.totNum,f:sumF('F',incFirst,incLast)}], 22);
+    blank();
 
-    rows += sectionTitle('قسم المصاريف');
-    rows += `<tr>${th('التاريخ',1)}${th('البيان',2)}${th('الفئة',2)}${th('المبلغ',1)}</tr>`;
-    let totalExpenses = 0;
+    // ===== قسم المصاريف =====
+    add([{v:'قسم المصاريف', s:S.section, span:6}], 24);
+    add([{v:'التاريخ',s:S.head},{v:'البيان',s:S.head,span:2},{v:'الفئة',s:S.head,span:2},{v:'المبلغ',s:S.head}], 22);
+    const expFirst = rows.length+1;
     expenses.forEach(e=>{
-      const amount = Number(e.amount)||0;
-      totalExpenses += amount;
-      rows += `<tr>${td(e.date||'')}${td(e.desc||'', {colspan:2, align:'right'})}${td(e.category||'', {colspan:2})}${td(fmt2(amount))}</tr>`;
+      add([{v:e.date||'',s:S.txtC},{v:e.desc||'',s:S.txtR,span:2},{v:e.category||'',s:S.txtC,span:2},{v:Number(e.amount)||0,s:S.num}]);
     });
-    rows += `<tr>${td('',{colspan:2})}${td('إجمالي المصاريف',{colspan:2, bold:true, bg:'#F2EEE4', align:'right'})}${td(fmt2(totalExpenses),{bold:true, bg:'#F2EEE4'})}</tr>`;
-    rows += blankRow();
+    const expLast = rows.length;
+    const expTotRow = rows.length+1;
+    add([{v:'',s:S.totLbl,span:2},{v:'إجمالي المصاريف',s:S.totLbl,span:3},
+      {v:totalExpenses,s:S.totNum,f: expenses.length ? `SUM(F${expFirst}:F${expLast})` : '0'}], 22);
 
-    const net = totalIncomePaid - totalExpenses;
-    const netColor = net>=0 ? '#E3EEE9' : '#F3E2E0';
-    rows += `<tr>${td('الرصيد الصافي (المقبوضات − المصاريف)',{colspan:5, bold:true, bg:netColor, align:'right'})}${td(fmt2(net),{bold:true, bg:netColor})}</tr>`;
+    // تعبئة جدول الملخص بمعادلات مربوطة بالجداول
+    const r1 = summaryIdx+1, r2 = r1+1, r3 = r1+2, r4 = r1+3;
+    const netPos = net >= 0;
+    rows[summaryIdx]   = {height:22, cells:[{v:'الدخل (المقبوضات فعلياً)',s:S.txtR,span:4},{v:totalIncomePaid,s:S.num,span:2,f:`E${incTotRow}`}]};
+    rows[summaryIdx+1] = {height:22, cells:[{v:'المصروف',s:S.txtR,span:4},{v:totalExpenses,s:S.num,span:2,f:`F${expTotRow}`}]};
+    rows[summaryIdx+2] = {height:22, cells:[{v:`العمولة (${commissionPercent}% من الدخل)`,s:S.txtR,span:4},{v:commission,s:S.numRed,span:2,f:`E${r1}*${commissionPercent}/100`}]};
+    rows[summaryIdx+3] = {height:26, cells:[{v:'الصافي (الدخل − العمولة − المصروف)',s:netPos?S.netPosLbl:S.netNegLbl,span:4},{v:net,s:netPos?S.netPosNum:S.netNegNum,span:2,f:`E${r1}-E${r3}-E${r2}`}]};
 
-    const html = `
-      <html dir="rtl"><head><meta charset="UTF-8"></head>
-      <body style="font-family:Arial;">
-      <table style="border-collapse:collapse; width:100%; direction:rtl;">${rows}</table>
-      </body></html>`;
-
-    const blob = new Blob(['\ufeff' + html], {type:'application/vnd.ms-excel'});
+    const blob = buildXlsx(rows, [12, 13, 28, 15, 15, 15]);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const dateStr = new Date().toISOString().slice(0,10);
     a.href = url;
-    a.download = `تقرير-ميراكوس-${dateStr}.xls`;
+    a.download = `تقرير-ميراكوس-${dateStr}.xlsx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    if(!silent) toast('تم تحميل النسخة الاحتياطية');
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    if(!silent) toast('تم تحميل تقرير Excel');
   }catch(e){
     console.error(e);
-    if(!silent) toast('تعذر إنشاء النسخة الاحتياطية');
+    if(!silent) toast('تعذر إنشاء ملف Excel');
   }
 }
+
 document.getElementById('btnExportBackup').addEventListener('click', ()=>exportExcelReport(false));
 
 function exportRestoreJSON(silent){
@@ -1847,18 +2148,19 @@ function exportRestoreJSON(silent){
 }
 document.getElementById('btnExportRestore').addEventListener('click', ()=>exportRestoreJSON(false));
 
-const DAILY_BACKUP_KEY = 'miracos_last_daily_backup';
-const MOBILE_BACKUP_KEY = 'miracos_last_mobile_backup';
-const MOBILE_BACKUP_INTERVAL_DAYS = 7; // أسبوع
 const DAILY_BACKUP_HOUR = 17; // 5 مساءً
+const MOBILE_BACKUP_INTERVAL_DAYS = 7; // أسبوع
 function isMobileDevice(){
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
 function updateLastDailyBackupLabel(){
   const el = document.getElementById('lastDailyBackupLabel');
   if(!el) return;
-  const last = safeLocal.getItem(isMobileDevice() ? MOBILE_BACKUP_KEY : DAILY_BACKUP_KEY);
-  el.textContent = last || 'لسا ما صارت';
+  if(isMobileDevice()){
+    el.textContent = settings.lastMobileBackupDate || 'لسا ما صارت';
+  }else{
+    el.textContent = settings.lastDailyBackupDate || 'لسا ما صارت';
+  }
 }
 
 let isRunningDailyBackup = false;
@@ -1870,16 +2172,12 @@ function runDailyBackupIfNeeded(){
     const today = now.toISOString().slice(0,10);
     const mobile = isMobileDevice();
     if(mobile){
-      // على الموبايل: مرة كل أسبوع بس، مش كل يوم
-      const last = safeLocal.getItem(MOBILE_BACKUP_KEY);
-      if(last){
-        const daysSince = Math.floor((now - new Date(last)) / (1000*60*60*24));
-        if(daysSince < MOBILE_BACKUP_INTERVAL_DAYS) return;
-      }
+      // على الموبايل: النسخة التلقائية ملغاة (كانت تفتح ملفات التنزيل بوجهك أول ما يفتح البرنامج)
+      // النسخ اليدوي من الإعدادات لسا شغال عادي
+      return;
     }else{
       // على الكمبيوتر: مرة كل يوم متل ما كانت (بدون تغيير)
-      const last = safeLocal.getItem(DAILY_BACKUP_KEY);
-      if(last === today) return;
+      if(settings.lastDailyBackupDate === today) return;
     }
     if(receipts.length === 0 && expenses.length === 0 && invoices.length === 0) return;
     isRunningDailyBackup = true;
@@ -1890,7 +2188,12 @@ function runDailyBackupIfNeeded(){
         setTimeout(()=>{
           try{
             exportRestoreJSON(true);
-            safeLocal.setItem(mobile ? MOBILE_BACKUP_KEY : DAILY_BACKUP_KEY, today);
+            if(mobile){
+              settings.lastMobileBackupDate = today;
+            }else{
+              settings.lastDailyBackupDate = today;
+            }
+            saveSettings();
             updateLastDailyBackupLabel();
             toast(mobile ? 'تم إنشاء نسخة احتياطية أسبوعية تلقائيًا — تفقّدي مجلد التنزيلات' : 'تم إنشاء نسخة احتياطية يومية تلقائيًا — تفقّدي مجلد التنزيلات');
           }catch(err){ console.error('daily backup (restore file) failed', err); }
@@ -1967,25 +2270,41 @@ document.getElementById('btnResetAll').addEventListener('click', async ()=>{
 
 let currentItems = [];
 
-function measResultFor(type, l, w, h){
-  l = parseFloat(l)||0; w = parseFloat(w)||0; h = parseFloat(h)||0;
+function measResultFor(type, l, w, h, h2){
+  l = parseFloat(l)||0; w = parseFloat(w)||0; h = parseFloat(h)||0; h2 = parseFloat(h2)||0;
   if(type==='طول') return {value: l, label: l.toFixed(2)+' م.ط'};
   if(type==='مكعب') return {value: l*w*h, label: (l*w*h).toFixed(3)+' م³'};
+  // عامود: القطر بالمتر (l) × 3.14 × الارتفاع بالمتر (w) = م²
+  if(type==='عامود'){ const a = l*3.14*w; return {value: a, label: a.toFixed(2)+' م²'}; }
+  // دائرة: بتنحسب بالقطر البراني متل ما هو (1.20 = 1.20 م²) — القطر الجواني للرسمة والمعمل فقط
+  if(type==='دائرة'){ return {value: l, label: l.toFixed(2)+' م²'}; }
+  // زاوية: بتنحسب من برا = الطول × العرض (مثلاً 0.40 × 0.40 = 0.16 م²) — الأضلاع للرسمة والمعمل بس
+  if(type==='زاوية'){ const a = (l>0 && w>0) ? l*w : 0; return {value: a, label: a.toFixed(2)+' م²'}; }
   return {value: l*w, label: (l*w).toFixed(2)+' م²'};
 }
+
+function escHtmlText(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function autoGrow(el){ el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
+document.addEventListener('input', e=>{ if(e.target.classList && e.target.classList.contains('desc-grow')) autoGrow(e.target); });
+// Enter بالبيان ما بيعمل سطر جديد (البيان سطر واحد بيلتف لحاله)
+document.addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.classList && e.target.classList.contains('desc-grow')) e.preventDefault(); });
+function growAllDesc(root){ (root||document).querySelectorAll('.desc-grow').forEach(autoGrow); }
 
 function newItemRow(item){
   item = item || {qty:'', desc:'', price:''};
   const row = document.createElement('tr');
   row.innerHTML = `
-    <td><input type="number" class="it-qty" value="${item.qty}" min="0" step="0.01"></td>
-    <td><input type="text" class="it-desc" value="${(item.desc||'').replace(/"/g,'&quot;')}"></td>
-    <td><input type="number" class="it-price" value="${item.price||''}" min="0"></td>
+    <td><input type="number" class="it-qty" value="${item.qty}" min="0" step="0.01" placeholder="العدد"></td>
+    <td class="desc-td"><textarea class="it-desc desc-grow" rows="1">${escHtmlText(item.desc||'')}</textarea>${drawsHtml(item.draws)}</td>
+    <td><input type="number" class="it-price" value="${item.price||''}" min="0" placeholder="السعر"></td>
     <td class="amount-cell it-amount">0 دج</td>
     <td><button type="button" class="btn btn-ghost btn-sm it-measure" title="قياس">📐</button></td>
     <td><button class="btn btn-ghost btn-sm it-remove">✕</button></td>
   `;
+  if(item.measType) row.dataset.measType = item.measType;
+  if(item.draws && item.draws.length) row.dataset.draws = JSON.stringify(item.draws);
   document.getElementById('itemsBody').appendChild(row);
+  requestAnimationFrame(()=>autoGrow(row.querySelector('.it-desc')));
   const qty = row.querySelector('.it-qty');
   const price = row.querySelector('.it-price');
   const amount = row.querySelector('.it-amount');
@@ -1999,6 +2318,46 @@ function newItemRow(item){
   row.querySelector('.it-remove').addEventListener('click', ()=>{ row.remove(); recalcTotals(); });
   row.querySelector('.it-measure').addEventListener('click', ()=>openItemMeasureTool(row, qty));
   recalc();
+}
+
+// نفس تنظيف الأرقام تبع حاسبة القياسات: الفاصلة "," بتصير "." ، و "0" بالأول بتصير "0."
+function cleanMeasDecimal(value){
+  const raw = String(value||'').replace(/[,،٫]/g, '.');
+  if(raw.includes('.')){
+    const parts = raw.replace(/[^0-9.]/g, '').split('.');
+    return (parts[0]||'0') + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
+  }
+  const digits = raw.replace(/[^0-9]/g, '');
+  if(digits.length === 0) return '';
+  if(digits[0] === '0' && digits.length > 1) return '0.' + digits.slice(1);
+  return digits;
+}
+
+// خانات القياس تحت سطر البند (بالوصل والفاتورة): تنظيف الأرقام + تنقل يمين/يسار بالأسهم متل الحاسبة
+function wireInlineMeasInputs(scopeEl){
+  const inputs = [...scopeEl.querySelectorAll('input.meas-dec')];
+  inputs.forEach(el=>{
+    // يشتغل قبل الحساب، حتى الحساب ياخد الرقم النظيف
+    el.addEventListener('input', ()=>{
+      const clean = cleanMeasDecimal(el.value);
+      if(clean !== el.value) el.value = clean;
+    });
+    el.addEventListener('focus', ()=>el.select());
+    el.addEventListener('keydown', e=>{
+      if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Enter') return;
+      const visible = inputs.filter(i=>i.style.display !== 'none');
+      const idx = visible.indexOf(el);
+      const targetIdx = e.key === 'ArrowRight' ? idx - 1 : idx + 1;
+      if(visible[targetIdx]){ e.preventDefault(); visible[targetIdx].focus(); visible[targetIdx].select(); }
+      else if(e.key === 'Enter'){
+        e.preventDefault();
+        const applyBtn = scopeEl.querySelector('.im-apply, .iim-apply');
+        if(applyBtn) applyBtn.focus();
+      }
+    });
+  });
+  const first = inputs.find(i=>i.style.display !== 'none');
+  if(first) setTimeout(()=>first.focus(), 0);
 }
 
 function measurementNoteText(t, l, w, h, count, total){
@@ -2028,10 +2387,10 @@ function openItemMeasureTool(row, qtyInput){
           <option value="طول">متر طول</option>
           <option value="مكعب">متر مكعب</option>
         </select>
-        <input type="number" class="im-l" placeholder="طول (م)" step="0.01" style="width:100px;">
-        <input type="number" class="im-w" placeholder="عرض (م)" step="0.01" style="width:100px;">
-        <input type="number" class="im-h" placeholder="سماكة (م)" step="0.01" style="width:100px; display:none;">
-        <input type="number" class="im-count" placeholder="عدد القطع" value="1" min="1" style="width:100px;">
+        <input type="text" inputmode="decimal" dir="ltr" class="im-l meas-dec" placeholder="طول (م)" style="width:100px; text-align:right;">
+        <input type="text" inputmode="decimal" dir="ltr" class="im-w meas-dec" placeholder="عرض (م)" style="width:100px; text-align:right;">
+        <input type="text" inputmode="decimal" dir="ltr" class="im-h meas-dec" placeholder="سماكة (م)" style="width:100px; text-align:right; display:none;">
+        <input type="text" inputmode="decimal" dir="ltr" class="im-count meas-dec" placeholder="عدد القطع" value="1" style="width:100px; text-align:right;">
         <span class="im-result" style="font-size:13px; font-weight:700; color:var(--brass-deep); min-width:90px;">0.00 م²</span>
         <button type="button" class="btn btn-sm im-apply">تطبيق على العدد</button>
       </div>
@@ -2055,6 +2414,7 @@ function openItemMeasureTool(row, qtyInput){
     const count = Number(countIn.value)||1;
     resultEl.textContent = (r.value*count).toFixed(3).replace(/\.?0+$/,'') + (t==='طول'?' م.ط':(t==='مكعب'?' م³':' م²'));
   }
+  wireInlineMeasInputs(mRow);
   [typeSel,lIn,wIn,hIn,countIn].forEach(el=>el.addEventListener('input', ()=>{ updateVisibility(); recalcMeasure(); }));
   updateVisibility(); recalcMeasure();
   mRow.querySelector('.im-apply').addEventListener('click', ()=>{
@@ -2067,13 +2427,15 @@ function openItemMeasureTool(row, qtyInput){
     const descIn = row.querySelector('.it-desc');
     if(descIn){
       const note = measurementNoteText(t, lIn.value, wIn.value, hIn.value, count, total);
-      descIn.value = descIn.value.trim() ? `${descIn.value.trim()} ${note}` : note;
+      descIn.value = descIn.value.trim() ? `${descIn.value.trim()} ${note}` : note; autoGrow(descIn);
     }
     mRow.remove();
   });
 }
 
 function recalcTotals(){
+  const rc = document.getElementById('rcpItemsCount');
+  if(rc) rc.textContent = `عدد البنود: ${document.querySelectorAll('#itemsBody .it-qty').length}`;
   let subtotal = 0;
   document.querySelectorAll('#itemsBody tr').forEach(row=>{
     const qtyEl = row.querySelector('.it-qty');
@@ -2136,7 +2498,82 @@ function getReceiptPayments(receipt){
   return migrated;
 }
 
+function populateCustomerDatalists(){
+  const names = new Set();
+  const allPhones = new Set();
+  const nameToPhones = new Map();
+  const consider = (name, phone)=>{
+    if(name) names.add(name);
+    if(phone) allPhones.add(phone);
+    if(name && phone){
+      if(!nameToPhones.has(name)) nameToPhones.set(name, new Set());
+      nameToPhones.get(name).add(phone);
+    }
+  };
+  receipts.forEach(r=> consider(r.name, r.phone));
+  invoices.forEach(i=> consider(i.clientName, i.clientPhone));
+  window._customerAllNames = names;
+  window._customerAllPhones = allPhones;
+  window._customerNameToPhones = nameToPhones;
+}
+
+// حقل اقتراحات مخصص: يبان بس وقت تكتب حرف على الأقل، وبيعرض المطابقات فقط
+// (بعكس datalist الأصلية يلي كانت تفتح قائمة كاملة بالضغط على السهم)
+function attachAutocomplete(inputEl, getMatches, onPick){
+  if(!inputEl || inputEl.dataset.autocompleteWired) return;
+  inputEl.dataset.autocompleteWired = '1';
+  const box = document.createElement('div');
+  box.className = 'autocomplete-box';
+  box.style.cssText = 'position:absolute; top:100%; right:0; left:0; z-index:50; background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,.12); max-height:180px; overflow-y:auto; display:none; margin-top:2px;';
+  inputEl.parentElement.appendChild(box);
+  function hide(){ box.style.display = 'none'; box.innerHTML = ''; }
+  function render(){
+    const q = inputEl.value.trim();
+    if(!q){ hide(); return; }
+    const matches = getMatches(q).slice(0, 8);
+    if(matches.length === 0){ hide(); return; }
+    box.innerHTML = matches.map(m=>`<div class="ac-item" style="padding:8px 10px; cursor:pointer; font-size:13.5px;">${m}</div>`).join('');
+    box.style.display = 'block';
+    [...box.children].forEach((el, i)=>{
+      el.addEventListener('mousedown', (e)=>{
+        e.preventDefault();
+        inputEl.value = matches[i];
+        hide();
+        if(onPick) onPick(matches[i]);
+        inputEl.dispatchEvent(new Event('input'));
+      });
+      el.addEventListener('mouseenter', ()=>{ el.style.background = 'var(--marble-2)'; });
+      el.addEventListener('mouseleave', ()=>{ el.style.background = ''; });
+    });
+  }
+  inputEl.addEventListener('input', render);
+  inputEl.addEventListener('focus', render);
+  inputEl.addEventListener('blur', ()=> setTimeout(hide, 150));
+}
+
+function wireCustomerNameAutocomplete(nameInputId, phoneInputId){
+  const nameEl = document.getElementById(nameInputId);
+  if(!nameEl) return;
+  attachAutocomplete(nameEl, (q)=>{
+    const all = window._customerAllNames || new Set();
+    return [...all].filter(n => n.includes(q));
+  });
+  if(phoneInputId){
+    const phoneEl = document.getElementById(phoneInputId);
+    attachAutocomplete(phoneEl, (q)=>{
+      const typedName = nameEl.value.trim();
+      const nameToPhones = window._customerNameToPhones;
+      const scoped = nameToPhones && nameToPhones.get(typedName);
+      const pool = (scoped && scoped.size > 0) ? scoped : (window._customerAllPhones || new Set());
+      return [...pool].filter(p => p.includes(q));
+    });
+  }
+}
+wireCustomerNameAutocomplete('rcpName', 'rcpPhone');
+wireCustomerNameAutocomplete('invClientName', 'invClientPhone');
+
 function openReceiptModal(receipt){
+  populateCustomerDatalists();
   document.getElementById('itemsBody').innerHTML = '';
   document.getElementById('paymentsBody').innerHTML = '';
   if(receipt){
@@ -2171,8 +2608,60 @@ function openReceiptModal(receipt){
   renderReceiptMeasTables();
   recalcTotals();
   document.getElementById('rcpDelivered').checked = !!(receipt && receipt.delivered);
+  // زر "تحويل إلى عرض سعر" بيظهر بس بتعديل وصل محفوظ (مش بالوصل الجديد ولا النسخة ولا المحوّل)
+  document.getElementById('btnReceiptToQuote').style.display = 'none';
   document.getElementById('receiptOverlay').classList.add('show');
+  requestAnimationFrame(()=>growAllDesc(document.getElementById('receiptOverlay')));
+  // زر "للمعمل" بيظهر إذا بنود الوصل فيها قياسات مرسومة (حتى قبل الحفظ)
+  document.getElementById('btnReceiptEditToFactory').style.display = document.querySelector('#itemsBody tr[data-draws]') ? '' : 'none';
 }
+document.getElementById('btnReceiptEditToFactory').addEventListener('click', ()=>{
+  const items = [...document.querySelectorAll('#itemsBody tr')].map(row=>{
+    const q = row.querySelector('.it-qty'), d = row.querySelector('.it-desc');
+    if(!q || !d) return null;
+    return {qty: Number(q.value)||0, desc: d.value.trim(), draws: row.dataset.draws ? JSON.parse(row.dataset.draws) : []};
+  }).filter(Boolean);
+  openFactoryPreview(factoryOrderFromItems(items, document.getElementById('rcpName').value.trim()));
+});
+
+// تحويل الوصل المفتوح للتعديل إلى عرض سعر مبسط جديد — الوصل الأصلي بيضل متل ما هو
+function convertReceiptToQuote(){
+  if(!document.getElementById('rcpId').value) return;
+  const rcpNo = document.getElementById('rcpNo').value;
+  if(!confirm(`تحويل الوصل رقم ${rcpNo} إلى عرض سعر؟ الوصل الأصلي بيضل محفوظ متل ما هو.`)) return;
+  const items = [];
+  document.querySelectorAll('#itemsBody tr').forEach(row=>{
+    const qtyEl = row.querySelector('.it-qty');
+    if(!qtyEl) return;
+    const qty = Number(qtyEl.value)||0;
+    const desc = row.querySelector('.it-desc').value.trim();
+    const price = Number(row.querySelector('.it-price').value)||0;
+    if(desc || qty || price) items.push({qty, desc, unit:'', price, amount: qty*price, ...(row.dataset.measType ? {measType: row.dataset.measType} : {}), ...(row.dataset.draws ? {draws: JSON.parse(row.dataset.draws)} : {})});
+  });
+  const discount = Number(document.getElementById('rcpDiscount').value)||0;
+  if(discount > 0) items.push({qty:1, desc:'خصم', unit:'', price:-discount, amount:-discount});
+  const pseudoInvoice = {
+    id: '',
+    docType: 'simple',
+    no: nextInvoiceNo('simple'),
+    date: new Date().toISOString().slice(0,10),
+    delay: document.getElementById('rcpDuration').value ? `${document.getElementById('rcpDuration').value} يوم` : '',
+    clientName: document.getElementById('rcpName').value.trim(),
+    clientAddress: document.getElementById('rcpAddress').value.trim(),
+    clientRC: '', clientNIF: '', clientNIS: '',
+    clientPhone: document.getElementById('rcpPhone').value.trim(),
+    note: `محوّل من وصل رقم ${rcpNo}`,
+    items,
+    payments: []
+  };
+  convertingFromInvoiceId = null;
+  document.getElementById('receiptOverlay').classList.remove('show');
+  openInvoiceModal(pseudoInvoice);
+  document.getElementById('invId').value = '';
+  document.getElementById('invoiceModalTitle').textContent = `عرض سعر جديد (محوّل من وصل رقم ${rcpNo})`;
+  toast('عرض السعر جاهز — راجعه واحفظه');
+}
+document.getElementById('btnReceiptToQuote').addEventListener('click', convertReceiptToQuote);
 
 document.getElementById('btnNewReceipt').addEventListener('click', ()=>openReceiptModal(null));
 
@@ -2192,7 +2681,8 @@ async function logPaymentHistoryEntries(payments, meta){
       amount: p.amount,
       method: p.method || 'نقدي',
       docType: meta.docType,
-      docNo: meta.docNo
+      docNo: meta.docNo,
+      details: meta.details || ''
     });
     changed = true;
   });
@@ -2209,7 +2699,7 @@ async function buildAndSaveReceiptFromForm(){
     const qty = Number(qtyEl.value)||0;
     const desc = row.querySelector('.it-desc').value.trim();
     const price = Number(row.querySelector('.it-price').value)||0;
-    if(desc || qty || price) items.push({qty, desc, price, amount: qty*price});
+    if(desc || qty || price) items.push({qty, desc, price, amount: qty*price, ...(row.dataset.measType ? {measType: row.dataset.measType} : {}), ...(row.dataset.draws ? {draws: JSON.parse(row.dataset.draws)} : {})});
   });
   const hasDetails = items.some(it=>it.desc);
   if(!hasDetails){ toast('يرجى كتابة تفاصيل البند (النوع) — خانة إجبارية'); return null; }
@@ -2227,7 +2717,7 @@ async function buildAndSaveReceiptFromForm(){
   const paid = payments.reduce((s,p)=>s+p.amount,0);
 
   const measTablesToSave = receiptMeasTables
-    .map(tbl => ({...tbl, rows: tbl.rows.filter(r => r.l || r.w || r.h)}))
+    .map(tbl => ({type: tbl.type, rows: tbl.rows.filter(measRowFilled)}))
     .filter(tbl => tbl.rows.length > 0);
 
   const id = document.getElementById('rcpId').value;
@@ -2263,7 +2753,7 @@ async function buildAndSaveReceiptFromForm(){
     receipts.push(data);
   }
   saveReceipts();
-  logPaymentHistoryEntries(payments, {customerName: name, docType: 'وصل', docNo: data.no});
+  logPaymentHistoryEntries(payments, {customerName: name, docType: 'وصل', docNo: data.no, details: items.map(it=>it.desc).filter(Boolean).join('، ')});
   if(convertingFromInvoiceId){
     invoices = invoices.filter(i=>i.id!==convertingFromInvoiceId);
     saveInvoices();
@@ -2354,7 +2844,7 @@ function renderReceiptsTable(){
     html += `<tr>
       <td>${r.no}</td>
       <td>${r.name}</td>
-      <td>${details}</td>
+      <td class="wrap-cell"><div class="details-wrap">${details}</div></td>
       <td>${r.phone||'—'}</td>
       <td>${r.delivered ? '<span style="color:var(--verdigris-deep); font-weight:700;">✔ تم التسليم</span>' : daysUntilLabel(computeDeliveryDate(r))}</td>
       <td>${fmt(r.total)}</td>
@@ -2374,6 +2864,10 @@ function renderReceiptsTable(){
   wrap.innerHTML = html;
 }
 document.getElementById('customerSearch').addEventListener('input', renderReceiptsTable);
+document.addEventListener('click', e=>{
+  const d = e.target.closest && e.target.closest('.details-wrap');
+  if(d) d.classList.toggle('expanded');
+});
 document.getElementById('expenseSearch').addEventListener('input', renderExpensesTable);
 
 function editReceipt(id){
@@ -2394,7 +2888,7 @@ function duplicateReceipt(id){
     address: r.address || '',
     note: r.note || '',
     discount: r.discount || '',
-    items: (r.items||[]).map(it=>({qty: it.qty, desc: it.desc, price: it.price, amount: it.amount})),
+    items: (r.items||[]).map(it=>({qty: it.qty, desc: it.desc, price: it.price, amount: it.amount, ...(it.measType ? {measType: it.measType} : {}), ...(it.draws && it.draws.length ? {draws: it.draws} : {})})),
     payments: [],
     measurementTables: r.measurementTables ? JSON.parse(JSON.stringify(r.measurementTables)) : []
   };
@@ -2487,8 +2981,8 @@ function viewReceipt(id){
   const r = receipts.find(r=>r.id===id);
   if(!r) return;
   currentViewedReceiptId = id;
-  const itemsRows = r.items.map(it=>`
-    <tr><td>${it.qty}</td><td>${it.desc}</td><td>${fmt(it.price)}</td><td>${fmt(it.amount)}</td></tr>
+  const itemsRows = r.items.map((it,i)=>`
+    <tr><td class="row-no">${i+1}</td><td>${it.qty}</td><td>${it.desc}${itemMeasDrawingsHtml(it, r.measurementTables)}</td><td>${fmt(it.price)}</td><td>${fmt(it.amount)}</td></tr>
   `).join('');
   const payList = getReceiptPayments(r);
   const paymentsRows = payList.map(p=>`
@@ -2496,26 +2990,29 @@ function viewReceipt(id){
   `).join('') || '<div class="totals-row"><span>لا توجد دفعات مسجلة</span><span>—</span></div>';
 
   let measTablesHtml = '';
-  if(r.measurementTables && r.measurementTables.length){
+  // إذا البنود فيها رسمات، ما في داعي لجداول القياسات المرفقة — كل التفاصيل بالرسمة
+  const itemsHaveDrawings = (r.items||[]).some(it=>(it.draws && it.draws.length) || it.measType);
+  if(r.measurementTables && r.measurementTables.length && !itemsHaveDrawings){
     const tablesPart = r.measurementTables.map(tbl=>{
       const spec = MEAS_SPECS[tbl.type];
       const headCols = spec.cols.map(c=>`<th>${c}</th>`).join('');
       const rowsHtml = tbl.rows.map((row,i)=>{
         const cells = spec.cols.map((c,ci)=>{
-          const field = ci===0?'l':ci===1?'w':'h';
-          return `<td>${row[field]||'—'}</td>`;
+          const field = ['l','w','h','h2'][ci];
+          return `<td>${measNumShow(row[field])}</td>`;
         }).join('');
         const count = row.count===undefined || row.count===null || row.count==='' ? 1 : row.count;
-        const base = measResultFor(tbl.type, row.l, row.w, row.h);
+        const base = measResultFor(tbl.type, row.l, row.w, row.h, row.h2);
         const total = base.value * (Number(count)||1);
         const unit = tbl.type==='طول' ? ' م.ط' : (tbl.type==='مكعب' ? ' م³' : ' م²');
         const resLabel = total.toFixed(tbl.type==='مكعب'?3:2) + unit;
-        return `<tr><td>${i+1}</td>${cells}<td>${count}</td><td>${resLabel}</td></tr>`;
+        const noteTd = measHasNote(tbl.type) ? `<td style="text-align:right;">${escHtmlText(row.note||'')}</td>` : '';
+        return `<tr><td>${i+1}</td>${cells}${noteTd}<td>${count}</td><td>${resLabel}</td></tr>`;
       }).join('');
       return `<div style="margin-top:14px;">
         <div style="font-weight:700; color:var(--brass-deep); margin-bottom:6px;">${spec.label}</div>
         <table class="meas-print-table">
-          <thead><tr><th>#</th>${headCols}<th>العدد</th><th>النتيجة</th></tr></thead>
+          <thead><tr><th>#</th>${headCols}${measHasNote(tbl.type)?'<th>التفاصيل</th>':''}<th>العدد</th><th>النتيجة</th></tr></thead>
           <tbody>${rowsHtml}</tbody>
         </table>
       </div>`;
@@ -2526,6 +3023,9 @@ function viewReceipt(id){
         ${t['مربع']>0 ? `<div><b>إجمالي متر مربع:</b> ${t['مربع'].toFixed(2)} م²</div>` : ''}
         ${t['طول']>0 ? `<div><b>إجمالي متر طول:</b> ${t['طول'].toFixed(2)} م.ط</div>` : ''}
         ${t['مكعب']>0 ? `<div><b>إجمالي متر مكعب:</b> ${t['مكعب'].toFixed(3)} م³</div>` : ''}
+        ${t['عامود']>0 ? `<div><b>إجمالي العواميد:</b> ${t['عامود'].toFixed(2)} م²</div>` : ''}
+        ${t['دائرة']>0 ? `<div><b>إجمالي الدوائر:</b> ${t['دائرة'].toFixed(2)} م²</div>` : ''}
+        ${t['زاوية']>0 ? `<div><b>إجمالي الزوايا:</b> ${t['زاوية'].toFixed(2)} م²</div>` : ''}
       </div>`;
     measTablesHtml = `
       <hr style="margin:18px 0; border:none; border-top:1px dashed var(--line);">
@@ -2538,7 +3038,7 @@ function viewReceipt(id){
   document.getElementById('receiptPrintArea').innerHTML = `
     <table>
       <thead>
-        <tr class="print-head-row"><td colspan="4">
+        <tr class="print-head-row"><td colspan="5">
           <div class="receipt-top">
             <div class="receipt-brand">
               <img src="${settings.logo}">
@@ -2553,6 +3053,10 @@ function viewReceipt(id){
               <div class="lbl">وصل دفع</div>
             </div>
           </div>
+        </td></tr>
+      </thead>
+      <tbody class="doc-intro">
+        <tr class="intro-row"><td colspan="5">
           <div class="receipt-info-grid">
             <div><span>الاسم: </span>${r.name}</div>
             <div><span>التاريخ: </span>${r.date||''}</div>
@@ -2561,8 +3065,8 @@ function viewReceipt(id){
             <div><span>العنوان: </span>${r.address||'—'}</div>
           </div>
         </td></tr>
-        <tr><th>العدد</th><th>النوع والتفاصيل</th><th>السعر</th><th>المبلغ</th></tr>
-      </thead>
+        <tr><th class="row-no">#</th><th>العدد</th><th>النوع والتفاصيل</th><th>السعر</th><th>المبلغ</th></tr>
+      </tbody>
       <tbody>${itemsRows}</tbody>
     </table>
     <div class="totals-box">
@@ -2591,8 +3095,7 @@ document.getElementById('btnShareReceipt').addEventListener('click', async ()=>{
   const area = document.getElementById('receiptPrintArea');
   let blob;
   try{
-    const canvas = await html2canvas(area, {scale:2, backgroundColor:'#ffffff', useCORS:true});
-    blob = await new Promise(res=>canvas.toBlob(res, 'image/jpeg', 0.92));
+    blob = await captureAsPage(area);
   }catch(e){
     console.error(e);
     toast('تعذر إنشاء الصورة');
@@ -2601,37 +3104,97 @@ document.getElementById('btnShareReceipt').addEventListener('click', async ()=>{
   if(!blob){ toast('تعذر إنشاء الصورة'); return; }
 
   const fileName = `وصل-${r.no}.jpg`.replace(/\s+/g,'-');
-  const file = new File([blob], fileName, {type:'image/jpeg'});
+  shareImageChoice(blob, fileName, shareTitle, r.phone);
+});
 
-  if(navigator.canShare && navigator.canShare({files:[file]})){
-    try{
-      await navigator.share({ files:[file], title: shareTitle, text: shareTitle });
-      return;
-    }catch(e){
-      if(e && e.name === 'AbortError') return;
-    }
+
+// صورة المشاركة بشكل صفحة الطباعة: نسخة من الوصل بعرض ورقة A4 (794px) بدل عرض النافذة الضيقة
+async function captureAsPage(area){
+  const holder = document.createElement('div');
+  holder.style.cssText = 'position:fixed; top:0; left:0; width:794px; background:#fff; z-index:-1; pointer-events:none;';
+  const clone = area.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.classList.add('share-page');
+  // المبالغ والأسعار ما تنكسر على سطرين
+  clone.querySelectorAll('td, th').forEach(c=>{ const t = c.textContent.trim(); if(/دج|^[\d.,\s×x*]+$/.test(t) && t.length < 25) c.style.whiteSpace = 'nowrap'; });
+  holder.appendChild(clone);
+  document.body.appendChild(holder);
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  try{
+    const canvas = await html2canvas(clone, {scale:2, backgroundColor:'#ffffff', useCORS:true, windowWidth:1200, width:794});
+    return await new Promise(res=>canvas.toBlob(res, 'image/jpeg', 0.92));
+  } finally {
+    holder.remove();
   }
+}
+
+// ---------- مشاركة: خيار حفظ الصورة أو إرسالها على واتساب ----------
+function waPhone(phone){
+  let d = String(phone||'').replace(/[^0-9]/g,'');
+  if(d.startsWith('00')) d = d.slice(2);
+  if(d.startsWith('0')) d = '213' + d.slice(1);
+  return d;
+}
+function downloadBlob(blob, fileName){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = fileName;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast('تم تحميل صورة الوصل — ارفعها يدوياً بواتساب');
-});
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+function shareImageChoice(blob, fileName, title, phone){
+  const old = document.getElementById('shareChoiceOverlay');
+  if(old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = 'shareChoiceOverlay';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:99999; padding:16px;';
+  ov.innerHTML = `<div style="background:var(--marble,#faf8f4); border-radius:14px; padding:20px; width:100%; max-width:320px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,.25);">
+    <div style="font-weight:800; margin-bottom:14px;">${title}</div>
+    <button type="button" class="btn btn-primary" data-act="save" style="width:100%; margin-bottom:8px;">💾 حفظ الصورة</button>
+    <button type="button" class="btn" data-act="wa" style="width:100%; margin-bottom:8px; background:#25D366; color:#fff; border-color:#25D366;">إرسال على واتساب</button>
+    <button type="button" class="btn btn-ghost" data-act="cancel" style="width:100%;">إلغاء</button>
+  </div>`;
+  document.body.appendChild(ov);
+  const close = ()=>ov.remove();
+  ov.addEventListener('click', e=>{ if(e.target===ov) close(); });
+  ov.querySelector('[data-act="cancel"]').addEventListener('click', close);
+  ov.querySelector('[data-act="save"]').addEventListener('click', ()=>{
+    close();
+    downloadBlob(blob, fileName);
+    toast('تم حفظ الصورة');
+  });
+  ov.querySelector('[data-act="wa"]').addEventListener('click', async ()=>{
+    close();
+    const file = new File([blob], fileName, {type:'image/jpeg'});
+    // الجوال: بتفتح قائمة المشاركة وبتختار واتساب، والصورة مرفقة
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({ files:[file], title }); return; }
+      catch(e){ if(e && e.name === 'AbortError') return; }
+    }
+    // الكمبيوتر: المتصفح ما بيقدر يرفق صورة لواتساب لحاله — بننزّل الصورة وبنفتح محادثة الزبون
+    downloadBlob(blob, fileName);
+    const p = waPhone(phone);
+    window.open(p ? `https://wa.me/${p}` : 'https://web.whatsapp.com/', '_blank');
+    toast('نزلت الصورة — اسحبها على محادثة واتساب');
+  });
+}
 
 function newInvoiceItemRow(item){
   item = item || {qty:'', desc:'', unit:'', price:''};
   const row = document.createElement('tr');
   row.innerHTML = `
-    <td><input type="number" class="inv-it-qty" value="${item.qty}" min="0" step="0.01"></td>
-    <td><input type="text" class="inv-it-desc" value="${(item.desc||'').replace(/"/g,'&quot;')}"></td>
+    <td><input type="number" class="inv-it-qty" value="${item.qty}" min="0" step="0.01" placeholder="العدد"></td>
+    <td class="desc-td"><textarea class="inv-it-desc desc-grow" rows="1">${escHtmlText(item.desc||'')}</textarea>${drawsHtml(item.draws)}</td>
     <td><input type="text" class="inv-it-unit" list="unitOptions" value="${(item.unit||'').replace(/"/g,'&quot;')}" placeholder="الوحدة"></td>
-    <td><input type="number" class="inv-it-price" value="${item.price||''}" min="0"></td>
+    <td><input type="number" class="inv-it-price" value="${item.price||''}" min="0" placeholder="السعر"></td>
     <td class="amount-cell inv-it-amount">0 دج</td>
     <td><button type="button" class="btn btn-ghost btn-sm inv-it-measure" title="قياس">📐</button></td>
     <td><button class="btn btn-ghost btn-sm inv-it-remove">✕</button></td>
   `;
+  if(item.measType) row.dataset.measType = item.measType;
+  if(item.draws && item.draws.length) row.dataset.draws = JSON.stringify(item.draws);
   document.getElementById('invItemsBody').appendChild(row);
+  requestAnimationFrame(()=>autoGrow(row.querySelector('.inv-it-desc')));
   const qty = row.querySelector('.inv-it-qty');
   const price = row.querySelector('.inv-it-price');
   const amount = row.querySelector('.inv-it-amount');
@@ -2663,10 +3226,10 @@ function openInvoiceItemMeasureTool(row, qtyInput){
           <option value="طول">متر طول</option>
           <option value="مكعب">متر مكعب</option>
         </select>
-        <input type="number" class="iim-l" placeholder="طول (م)" step="0.01" style="width:100px;">
-        <input type="number" class="iim-w" placeholder="عرض (م)" step="0.01" style="width:100px;">
-        <input type="number" class="iim-h" placeholder="سماكة (م)" step="0.01" style="width:100px; display:none;">
-        <input type="number" class="iim-count" placeholder="عدد القطع" value="1" min="1" style="width:100px;">
+        <input type="text" inputmode="decimal" dir="ltr" class="iim-l meas-dec" placeholder="طول (م)" style="width:100px; text-align:right;">
+        <input type="text" inputmode="decimal" dir="ltr" class="iim-w meas-dec" placeholder="عرض (م)" style="width:100px; text-align:right;">
+        <input type="text" inputmode="decimal" dir="ltr" class="iim-h meas-dec" placeholder="سماكة (م)" style="width:100px; text-align:right; display:none;">
+        <input type="text" inputmode="decimal" dir="ltr" class="iim-count meas-dec" placeholder="عدد القطع" value="1" style="width:100px; text-align:right;">
         <span class="iim-result" style="font-size:13px; font-weight:700; color:var(--brass-deep); min-width:90px;">0.00 م²</span>
         <button type="button" class="btn btn-sm iim-apply">تطبيق على العدد</button>
       </div>
@@ -2690,6 +3253,7 @@ function openInvoiceItemMeasureTool(row, qtyInput){
     const count = Number(countIn.value)||1;
     resultEl.textContent = (r.value*count).toFixed(3).replace(/\.?0+$/,'') + (t==='طول'?' م.ط':(t==='مكعب'?' م³':' م²'));
   }
+  wireInlineMeasInputs(mRow);
   [typeSel,lIn,wIn,hIn,countIn].forEach(el=>el.addEventListener('input', ()=>{ updateVisibility(); recalcMeasure(); }));
   updateVisibility(); recalcMeasure();
   mRow.querySelector('.iim-apply').addEventListener('click', ()=>{
@@ -2702,13 +3266,15 @@ function openInvoiceItemMeasureTool(row, qtyInput){
     const descIn = row.querySelector('.inv-it-desc');
     if(descIn){
       const note = measurementNoteText(t, lIn.value, wIn.value, hIn.value, count, total);
-      descIn.value = descIn.value.trim() ? `${descIn.value.trim()} ${note}` : note;
+      descIn.value = descIn.value.trim() ? `${descIn.value.trim()} ${note}` : note; autoGrow(descIn);
     }
     mRow.remove();
   });
 }
 
 function recalcInvoiceTotals(){
+  const ic = document.getElementById('invItemsCount');
+  if(ic) ic.textContent = `عدد البنود: ${document.querySelectorAll('#invItemsBody .inv-it-qty').length}`;
   let ht = 0;
   document.querySelectorAll('#invItemsBody tr').forEach(row=>{
     const qtyEl = row.querySelector('.inv-it-qty');
@@ -2801,6 +3367,7 @@ document.getElementById('invDocType').addEventListener('change', ()=>{
 });
 
 function openInvoiceModal(invoice){
+  populateCustomerDatalists();
   document.getElementById('invItemsBody').innerHTML = '';
   document.getElementById('invPaymentsBody').innerHTML = '';
   if(invoice){
@@ -2838,6 +3405,7 @@ function openInvoiceModal(invoice){
   updateInvNoLabel();
   recalcInvoiceTotals();
   document.getElementById('invoiceOverlay').classList.add('show');
+  requestAnimationFrame(()=>growAllDesc(document.getElementById('invoiceOverlay')));
 }
 document.getElementById('btnNewInvoice').addEventListener('click', ()=>openInvoiceModal(null));
 
@@ -2852,7 +3420,7 @@ async function buildAndSaveInvoiceFromForm(){
     const desc = row.querySelector('.inv-it-desc').value.trim();
     const unit = row.querySelector('.inv-it-unit').value.trim();
     const price = Number(row.querySelector('.inv-it-price').value)||0;
-    if(desc || qty || price) items.push({qty, desc, unit, price, amount: qty*price});
+    if(desc || qty || price) items.push({qty, desc, unit, price, amount: qty*price, ...(row.dataset.measType ? {measType: row.dataset.measType} : {}), ...(row.dataset.draws ? {draws: JSON.parse(row.dataset.draws)} : {})});
   });
   const ht = items.reduce((s,it)=>s+it.amount,0);
   const isSimpleDoc = document.getElementById('invDocType').value === 'simple';
@@ -2893,7 +3461,7 @@ async function buildAndSaveInvoiceFromForm(){
     invoices.push(data);
   }
   saveInvoices();
-  logPaymentHistoryEntries(payments, {customerName: clientName, docType: data.docType==='facture'?'فاتورة':(data.docType==='devis'?'Devis':'عرض سعر'), docNo: data.no});
+  logPaymentHistoryEntries(payments, {customerName: clientName, docType: data.docType==='facture'?'فاتورة':(data.docType==='devis'?'Devis':'عرض سعر'), docNo: data.no, details: (items||[]).map(it=>it.desc).filter(Boolean).join('، ')});
   renderInvoicesTable();
   renderDashboard();
   renderPaymentHistoryTable();
@@ -2977,7 +3545,7 @@ function duplicateInvoice(id){
     clientNIS: inv.clientNIS || '',
     clientPhone: inv.clientPhone || '',
     note: inv.note || '',
-    items: (inv.items||[]).map(it=>({qty: it.qty, desc: it.desc, unit: it.unit, price: it.price, amount: it.amount})),
+    items: (inv.items||[]).map(it=>({qty: it.qty, desc: it.desc, unit: it.unit, price: it.price, amount: it.amount, ...(it.measType ? {measType: it.measType} : {}), ...(it.draws && it.draws.length ? {draws: it.draws} : {})})),
     payments: []
   };
   openInvoiceModal(pseudoInvoice);
@@ -3000,7 +3568,7 @@ function convertInvoiceToReceipt(id){
     phone: inv.clientPhone || '',
     address: inv.clientAddress || '',
     note: `محوّل من ${inv.docType === 'facture' ? 'Facture' : (inv.docType === 'devis' ? 'Devis' : 'عرض سعر')} رقم ${inv.no}`,
-    items: (inv.items||[]).map(it=>({qty: it.qty, desc: it.desc, price: it.price, amount: it.amount})),
+    items: (inv.items||[]).map(it=>({qty: it.qty, desc: it.desc, price: it.price, amount: it.amount, ...(it.measType ? {measType: it.measType} : {}), ...(it.draws && it.draws.length ? {draws: it.draws} : {})})),
     payments: []
   };
   openReceiptModal(pseudoReceipt);
@@ -3026,8 +3594,8 @@ function viewInvoice(id){
   const isSimple = inv.docType === 'simple';
 
   if(isSimple){
-    const itemsRowsAr = (inv.items||[]).map(it=>`
-      <tr><td>${it.qty}</td><td style="text-align:right;">${it.desc}</td><td>${it.unit||''}</td><td>${fmt(it.price)}</td><td>${fmt(it.amount)}</td></tr>
+    const itemsRowsAr = (inv.items||[]).map((it,i)=>`
+      <tr><td class="row-no">${i+1}</td><td>${it.qty}</td><td style="text-align:right;">${it.desc}${itemMeasDrawingsHtml(it)}</td><td>${it.unit||''}</td><td>${fmt(it.price)}</td><td>${fmt(it.amount)}</td></tr>
     `).join('');
     const paymentsRowsAr = (inv.payments||[]).map(p=>`
       <div class="totals-row"><span>دفعة بتاريخ ${p.date||'—'}</span><span>${fmt(p.amount)}</span></div>
@@ -3036,7 +3604,7 @@ function viewInvoice(id){
     document.getElementById('invoicePrintArea').innerHTML = `
       <table>
         <thead>
-          <tr class="print-head-row"><td colspan="5">
+          <tr class="print-head-row"><td colspan="6">
             <div class="receipt-top">
               <div class="receipt-brand">
                 <img src="${settings.logo}" style="width:2.2cm; height:2.6cm; object-fit:contain;">
@@ -3050,15 +3618,21 @@ function viewInvoice(id){
                   <div class="no">عرض سعر</div>
                   <div class="lbl">رقم ${inv.no}</div>
                 </div>
-                <div style="font-size:13px; font-weight:700; color:var(--text-dim);">التاريخ: ${inv.date||''}</div>
               </div>
             </div>
-            <div style="margin-bottom:14px; font-size:13.5px; line-height:1.6;">
-              <div><b>الزبون:</b> ${inv.clientName} ${inv.clientAddress ? '— '+inv.clientAddress : ''}${inv.clientPhone ? ' — '+inv.clientPhone : ''}</div>
+          </td></tr>
+        </thead>
+        <tbody class="doc-intro">
+          <tr class="intro-row"><td colspan="6">
+            <div class="receipt-info-grid">
+              <div><span>الاسم: </span>${inv.clientName}</div>
+              <div><span>التاريخ: </span>${inv.date||''}</div>
+              <div><span>الهاتف: </span>${inv.clientPhone||'—'}</div>
+              <div><span>العنوان: </span>${inv.clientAddress||'—'}</div>
             </div>
           </td></tr>
-          <tr><th>العدد</th><th>البيان</th><th>الوحدة</th><th>السعر</th><th>المجموع</th></tr>
-        </thead>
+          <tr><th class="row-no">#</th><th>العدد</th><th>البيان</th><th>الوحدة</th><th>السعر</th><th>المجموع</th></tr>
+        </tbody>
         <tbody>${itemsRowsAr}</tbody>
       </table>
       <div class="totals-box">
@@ -3075,8 +3649,8 @@ function viewInvoice(id){
   }
 
   const docLabel = (inv.docType === 'facture') ? 'FACTURE' : 'DEVIS';
-  const itemsRows = (inv.items||[]).map(it=>`
-    <tr><td>${it.qty}</td><td style="text-align:left;">${it.desc}</td><td>${it.unit||''}</td><td>${fmt(it.price)}</td><td>${fmt(it.amount)}</td></tr>
+  const itemsRows = (inv.items||[]).map((it,i)=>`
+    <tr><td class="row-no">${i+1}</td><td>${it.qty}</td><td style="text-align:left;">${it.desc}${itemMeasDrawingsHtml(it)}</td><td>${it.unit||''}</td><td>${fmt(it.price)}</td><td>${fmt(it.amount)}</td></tr>
   `).join('');
   const paymentsRows = (inv.payments||[]).map(p=>`
     <div class="totals-row"><span>Paiement du ${p.date||'—'}</span><span>${fmt(p.amount)}</span></div>
@@ -3087,7 +3661,7 @@ function viewInvoice(id){
   document.getElementById('invoicePrintArea').innerHTML = `
     <table style="direction:ltr;">
       <thead>
-        <tr class="print-head-row"><td colspan="5">
+        <tr class="print-head-row"><td colspan="6">
           <div class="receipt-top" style="direction:ltr; text-align:left;">
             <div class="receipt-brand">
               <img src="${settings.logo}" style="width:2.2cm; height:2.6cm; object-fit:contain;">
@@ -3105,13 +3679,17 @@ function viewInvoice(id){
               <div style="font-size:13px; font-weight:700; color:var(--text-dim);">Date: ${inv.date||''}</div>
             </div>
           </div>
+        </td></tr>
+      </thead>
+      <tbody class="doc-intro">
+        <tr class="intro-row"><td colspan="6">
           <div style="direction:ltr; text-align:left; margin-bottom:14px; font-size:13.5px; line-height:1.6;">
             <div><b>Client:</b> ${inv.clientName} ${inv.clientAddress ? '— '+inv.clientAddress : ''}</div>
             ${clientLegalLine}
           </div>
         </td></tr>
-        <tr><th>Qté</th><th>Désignation</th><th>Unité</th><th>Prix Unit.</th><th>Total</th></tr>
-      </thead>
+        <tr><th class="row-no">N°</th><th>Qté</th><th>Désignation</th><th>Unité</th><th>Prix Unit.</th><th>Total</th></tr>
+      </tbody>
       <tbody>${itemsRows}</tbody>
     </table>
     <div class="totals-box" style="direction:ltr; text-align:left;">
@@ -3156,8 +3734,7 @@ async function shareInvoiceById(id){
   const area = document.getElementById('invoicePrintArea');
   let blob;
   try{
-    const canvas = await html2canvas(area, {scale:2, backgroundColor:'#ffffff', useCORS:true});
-    blob = await new Promise(res=>canvas.toBlob(res, 'image/jpeg', 0.92));
+    blob = await captureAsPage(area);
   }catch(e){
     console.error(e);
     toast('تعذر إنشاء الصورة');
@@ -3167,22 +3744,7 @@ async function shareInvoiceById(id){
   if(!blob){ toast('تعذر إنشاء الصورة'); return; }
 
   const fileName = `${docLabel}-${inv.no}.jpg`.replace(/\s+/g,'-');
-  const file = new File([blob], fileName, {type:'image/jpeg'});
-
-  if(navigator.canShare && navigator.canShare({files:[file]})){
-    try{
-      await navigator.share({ files:[file], title: shareTitle, text: shareTitle });
-      return;
-    }catch(e){
-      if(e && e.name === 'AbortError') return;
-    }
-  }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = fileName;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast('تم تحميل صورة المستند — ارفعها يدوياً بواتساب');
+  shareImageChoice(blob, fileName, shareTitle, inv.clientPhone);
 }
 
 document.getElementById('btnShareInvoice').addEventListener('click', ()=>{
@@ -3296,16 +3858,19 @@ async function deleteExpense(id){
 const MEAS_SPECS = {
   'مربع': {label:'متر مربع', cols:['طول (م)','عرض (م)']},
   'طول': {label:'متر طول', cols:['طول (م)','العرض (مرجعي، م)']},
-  'مكعب': {label:'متر مكعب', cols:['طول (م)','عرض (م)','سماكة (م)']}
+  'مكعب': {label:'متر مكعب', cols:['طول (م)','عرض (م)','سماكة (م)']},
+  'عامود': {label:'عامود (القطر × 3.14 × الارتفاع = م²)', cols:['القطر (م)','الارتفاع (م)']},
+  'دائرة': {label:'دائرة (بتنحسب بالقطر البراني)', cols:['القطر برا (م)','القطر جوا (م)']},
+  'زاوية': {label:'زاوية (بتنحسب الطول × العرض من برا)', cols:['الطول (م)','العرض (م)','الضلع 1 (م)','الضلع 2 (م)']}
 };
 
 function computeMeasTotalsFrom(tables){
-  const totals = {'مربع':0, 'طول':0, 'مكعب':0};
+  const totals = {'مربع':0, 'طول':0, 'مكعب':0, 'عامود':0};
   tables.forEach(tbl=>{
     tbl.rows.forEach(r=>{
       const count = r.count===undefined || r.count===null || r.count==='' ? 1 : (Number(r.count)||1);
-      const base = measResultFor(tbl.type, r.l, r.w, r.h);
-      totals[tbl.type] += base.value * count;
+      const base = measResultFor(tbl.type, r.l, r.w, r.h, r.h2);
+      totals[tbl.type] = (totals[tbl.type]||0) + base.value * count;
     });
   });
   return totals;
@@ -3321,13 +3886,505 @@ function renderMeasTotals(tables, targetEl){
   </div>`;
   el.innerHTML = card('إجمالي متر مربع', totals['مربع'], 'م²')
     + card('إجمالي متر طول', totals['طول'], 'م.ط')
-    + card('إجمالي متر مكعب', totals['مكعب'], 'م³');
+    + card('إجمالي متر مكعب', totals['مكعب'], 'م³')
+    + (tables.some(t=>t.type==='عامود') ? card('إجمالي العواميد', totals['عامود'], 'م²') : '')
+    + (tables.some(t=>t.type==='دائرة') ? card('إجمالي الدوائر', totals['دائرة']||0, 'م²') : '')
+    + (tables.some(t=>t.type==='زاوية') ? card('إجمالي الزوايا', totals['زاوية']||0, 'م²') : '');
 }
 
-function emptyMeasRow(){ return {l:'', w:'', h:'', count:1}; }
+// جداول القياسات بتنطوى: بتطلع بس عنوانها وملخصها، وكبسة على العنوان بتفتحها
+function measTableSummary(tbl){
+  const filled = tbl.rows.filter(r=>parseFloat(r.l)||parseFloat(r.w)||parseFloat(r.h));
+  if(!filled.length) return '';
+  const total = computeMeasTotalsFrom([{type: tbl.type, rows: filled}])[tbl.type] || 0;
+  const unit = tbl.type==='طول' ? 'م.ط' : (tbl.type==='مكعب' ? 'م³' : 'م²');
+  return `— ${filled.length} قياس · ${total.toFixed(tbl.type==='مكعب'?3:2)} ${unit}`;
+}
+function wireMeasToggles(wrap, tables){
+  wrap.addEventListener('input', ()=>{
+    wrap.querySelectorAll('.meas-toggle').forEach(h=>{ const t = tables[h.dataset.toggleT]; if(t) h.querySelector('.meas-sum').textContent = measTableSummary(t); });
+  });
+  wrap.querySelectorAll('.meas-toggle').forEach(head=>{
+    head.addEventListener('click', e=>{
+      if(e.target.closest('button')) return;
+      const t = head.dataset.toggleT;
+      tables[t].open = !tables[t].open;
+      const body = head.nextElementSibling;
+      body.style.display = tables[t].open ? '' : 'none';
+      head.querySelector('.meas-arrow').textContent = tables[t].open ? '▾' : '◂';
+      head.querySelector('.meas-sum').textContent = measTableSummary(tables[t]);
+      if(tables[t].open){ const f = body.querySelector('input'); if(f) f.focus(); }
+    });
+  });
+}
+
+function measNumShow(v){ const n = parseFloat(v); return (v===''||v==null||isNaN(n)) ? '—' : String(Number(n.toFixed(3))); }
+function emptyMeasRow(){ return {l:'', w:'', h:'', count:1, note:''}; }
+// خانة "التفاصيل" (اختيارية) بجدول متر مربع ومتر طول
+const MEAS_NOTE_TYPES = ['مربع','طول','عامود','دائرة'];
+function measHasNote(type){ return MEAS_NOTE_TYPES.includes(type); }
+function measRowFilled(r){ return !!((r.l!=='' && r.l!=null) || (r.w!=='' && r.w!=null) || (r.h!=='' && r.h!=null) || String(r.note||'').trim()); }
+function measNoteInput(tbl, ti, ri, r){
+  return `<input type="text" class="meas-note" data-t="${ti}" data-r="${ri}" data-f="note" value="${escHtmlText(r.note||'').replace(/"/g,'&quot;')}">`;
+}
 
 // تنقل بين خانات جدول القياسات بالأسهم متل الإكسل: فوق/تحت = نفس الخانة بالصف
 // يلي قبل/بعد، يمين/يسار = الخانة يلي قبل/بعد بنفس الصف (بس إذا المؤشر بأول أو آخر النص).
+// ================== رسمة القطعة (بالسنتي) + علامات اللف ==================
+function fmtCm(v){ const n = Number(v)||0; return String(Number(n.toFixed(1))); }
+function pieceSvg(lCm, wCm, edges, opts){
+  opts = opts || {}; edges = edges || {};
+  const maxW = opts.maxW || 240, maxH = opts.maxH || 100;
+  lCm = Number(lCm)||0; wCm = Number(wCm)||0;
+  if(lCm<=0 || wCm<=0) return '';
+  const sc = Math.min(maxW/lCm, maxH/wCm);
+  const rw = Math.max(lCm*sc, 36), rh = Math.max(wCm*sc, 16);
+  const padTop = 22, padSide = 54, padBot = 12;
+  const W = rw + padSide*2, H = rh + padTop + padBot;
+  const x0 = padSide, y0 = padTop, x1 = x0 + rw, y1 = y0 + rh;
+  const RED = '#D32F2F', INK = '#333';
+  const edge = (k, xa, ya, xb, yb)=>{
+    const vis = `<line x1="${xa}" y1="${ya}" x2="${xb}" y2="${yb}" stroke="${edgeColor(edges[k])}" stroke-width="${edgeType(edges[k])?7:2}" stroke-linecap="round"/>`;
+    const hit = opts.hit ? `<line class="piece-edge" data-edge="${k}" x1="${xa}" y1="${ya}" x2="${xb}" y2="${yb}" stroke="rgba(0,0,0,0)" stroke-width="18"/>` : '';
+    return vis + hit;
+  };
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="font-family:Arial,sans-serif; direction:ltr;" direction="ltr">
+    <rect x="${x0}" y="${y0}" width="${rw}" height="${rh}" fill="#F4EFE4"/>
+    ${edge('t',x0,y0,x1,y0)}${edge('b',x0,y1,x1,y1)}${edge('r',x1,y0,x1,y1)}${edge('l',x0,y0,x0,y1)}
+    <text x="${(x0+x1)/2+4}" y="${y0-7}" text-anchor="start" font-size="13" font-weight="700" fill="#111">${fmtCm(lCm)}</text>
+    <text x="${(x0+x1)/2}" y="${y0-7}" text-anchor="end" font-size="12" fill="#444">سم</text>
+    <text x="${x1+26}" y="${(y0+y1)/2}" text-anchor="middle" font-size="13" font-weight="700" fill="#111">${fmtCm(wCm)}</text>
+    <text x="${x1+26}" y="${(y0+y1)/2+14}" text-anchor="middle" font-size="12" fill="#444">سم</text>
+  </svg>`;
+}
+// ---- أشكال تانية: دائرة، زاوية، عامود (من برا ومن جوا + اللف) ----
+function svgLbl(x, y, text, size, bold){ return `<text x="${x}" y="${y}" text-anchor="middle" font-size="${size||12}" ${bold?'font-weight="700"':''} fill="#111">${text}</text>`; }
+function svgWrap(W, H, inner){ return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="font-family:Arial,sans-serif; direction:ltr;" direction="ltr">${inner}</svg>`; }
+const EDGE_RED = '#D32F2F', EDGE_GREEN = '#2E9E4F', EDGE_INK = '#333';
+// نوع الحافة: 'a' اروندي (أحمر) — 's' شطفة (أخضر) — true من النسخ القديمة = اروندي
+function edgeType(v){ return v === 's' ? 's' : (v ? 'a' : ''); }
+function edgeColor(v){ const t = edgeType(v); return t==='s' ? EDGE_GREEN : t==='a' ? EDGE_RED : EDGE_INK; }
+function edgeStroke(on){ return `stroke="${edgeColor(on)}" stroke-width="${edgeType(on)?7:2}"`; }
+// الفرشاة المختارة بالحاسبة
+let edgeBrush = 'a';
+function toggleEdge(edges, k){ const e = Object.assign({}, edges||{}); e[k] = edgeType(e[k]) === edgeBrush ? false : edgeBrush; return e; }
+function edgeLegendHtml(types){
+  const parts = [];
+  if(types.a) parts.push('<span class="lg"><i style="background:#D32F2F"></i> أحمر = اروندي</span>');
+  if(types.s) parts.push('<span class="lg"><i style="background:#2E9E4F"></i> أخضر = شطفة</span>');
+  return parts.length ? `<div class="fac-legend">${parts.join('')}</div>` : '';
+}
+function edgeTypesOf(pieces){ const t = {}; (pieces||[]).forEach(p=>Object.values(p.edges||{}).forEach(v=>{ const x = edgeType(v); if(x) t[x] = true; })); return t; }
+function edgeHit(opts, k, el){ return opts.hit ? el.replace('/>', ` class="piece-edge" data-edge="${k}" stroke="rgba(0,0,0,0)" stroke-width="18" fill="none" pointer-events="stroke"/>`) : ''; }
+
+function circleSvg(D, d, edges, opts){
+  opts = opts||{}; edges = edges||{}; D = Number(D)||0; d = Number(d)||0;
+  if(D<=0) return '';
+  const R = Math.min(55, (opts.maxH||100)/2), r = d>0 ? Math.max(R*d/D, 6) : 0;
+  const W = R*2 + 200, H = R*2 + 24, cx = R + 14, cy = R + 12;
+  let g = `<circle cx="${cx}" cy="${cy}" r="${R}" fill="#F4EFE4" ${edgeStroke(edges.o)}/>` + edgeHit(opts,'o',`<circle cx="${cx}" cy="${cy}" r="${R}"/>`);
+  if(r>0) g += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" ${edgeStroke(edges.i)}/>` + edgeHit(opts,'i',`<circle cx="${cx}" cy="${cy}" r="${r}"/>`);
+  const lx = cx + R + 95;
+  g += svgLbl(lx, cy - (r>0?6:-4), `قطر برا: ${fmtCm(D)} سم`, 13, true);
+  if(r>0) g += svgLbl(lx, cy + 14, `قطر جوا: ${fmtCm(d)} سم`, 13, true);
+  return svgWrap(W, H, g);
+}
+// زاوية L: ضلع برا A (أفقي) وضلع برا B (عامودي) والعرض C — الضلع الجوا = البرا − العرض
+// اتجاه الزاوية = وين رأس الزاوية البراني: tr فوق يمين (افتراضي) / tl فوق يسار / br تحت يمين / bl تحت يسار
+function cornerDir(d){ return d==='l' ? 'tl' : (d==='tl'||d==='br'||d==='bl') ? d : 'tr'; }
+const CORNER_DIR_TXT = {tr:'فوق يمين', tl:'فوق يسار', br:'تحت يمين', bl:'تحت يسار'};
+const CORNER_DIR_ARROW = {tr:'↗', tl:'↖', br:'↘', bl:'↙'};
+// زاوية L: الطول A (أفقي، ضلعه C1) والعرض B (عامودي، ضلعه C2) — الجوا = البرا − ضلع التاني
+function cornerSvg(A, B, C, edges, opts){
+  opts = opts||{}; edges = edges||{}; A = Number(A)||0; B = Number(B)||0; C = Number(C)||0;
+  const C2 = Number(opts.c2)||C;
+  if(A<=0 || B<=0 || C<=0 || C >= B || C2 >= A) return '';
+  const dir = cornerDir(opts.dir), left = dir==='tl'||dir==='bl', bottom = dir==='br'||dir==='bl';
+  const maxW = opts.maxW||200, maxH = opts.maxH||110;
+  const sc = Math.min(maxW/A, maxH/B);
+  const a = Math.max(A*sc, 40), b = Math.max(B*sc, 40);
+  const c1 = Math.min(Math.max(C*sc, 10), b-12), c2 = Math.min(Math.max(C2*sc, 10), a-12);
+  const pad = 80, padV = 28;
+  const W = a + pad*2, H = b + padV*2;
+  const X = x => left ? (W - x) : x;
+  const Y = y => bottom ? (H - y) : y;
+  const x0 = pad, y0 = padV, x1 = x0 + a, y1 = y0 + b;
+  const line = (k, xa, ya, xb, yb)=> `<line x1="${X(xa)}" y1="${Y(ya)}" x2="${X(xb)}" y2="${Y(yb)}" ${edgeStroke(edges[k])} stroke-linecap="round"/>` + edgeHit(opts, k, `<line x1="${X(xa)}" y1="${Y(ya)}" x2="${X(xb)}" y2="${Y(yb)}"/>`);
+  const pt = (x,y)=>`${X(x)},${Y(y)}`;
+  let g = `<path d="M${pt(x0,y0)} L${pt(x1,y0)} L${pt(x1,y1)} L${pt(x1-c2,y1)} L${pt(x1-c2,y0+c1)} L${pt(x0,y0+c1)} Z" fill="#F4EFE4"/>`;
+  g += line('oa', x0,y0, x1,y0) + line('ob', x1,y0, x1,y1) + line('ia', x0,y0+c1, x1-c2,y0+c1) + line('ib', x1-c2,y0+c1, x1-c2,y1) + line('ea', x0,y0, x0,y0+c1) + line('eb', x1-c2,y1, x1,y1);
+  g += svgLbl(X((x0+x1)/2), bottom ? Y(y0)+16 : y0-8, `طول ${fmtCm(A)} سم`, 13, true);
+  g += svgLbl(X(x1+40), H/2, `عرض ${fmtCm(B)}`, 13, true) + svgLbl(X(x1+40), H/2+14, 'سم', 12);
+  g += svgLbl(X(x0-40), Y(y0+c1/2)+4, `الضلع ${fmtCm(C)}`, 12);
+  g += svgLbl(X(x1-c2/2), bottom ? Y(y1)-6 : y1+15, `الضلع ${fmtCm(C2)}`, 12);
+  if(!opts.compact){
+    g += svgLbl(X((x0+x1-c2)/2), bottom ? Y(y0+c1)-6 : y0+c1+15, `جوا ${fmtCm(A-C2)}`, 12);
+    g += svgLbl(X(x1-c2-30), Y(Math.max((y0+c1+y1)/2+4, y0+c1+36)), `جوا ${fmtCm(B-C)}`, 12);
+  }
+  return svgWrap(W, H, g);
+}
+// عامود (منظر من قدّام): القطر D والارتفاع Hh — لف فوق/تحت
+function columnSvg(D, Hh, edges, opts){
+  opts = opts||{}; edges = edges||{}; D = Number(D)||0; Hh = Number(Hh)||0;
+  if(D<=0 || Hh<=0) return '';
+  const maxW = opts.maxW||160, maxH = opts.maxH||120;
+  const sc = Math.min(maxW/D, maxH/Hh);
+  const w = Math.max(D*sc, 26), h = Math.max(Hh*sc, 30), ry = Math.min(9, w*0.18);
+  const padL = 110, padT = 30, padR = 30, padB = ry + 10;
+  const x0 = padL, y0 = padT + ry, x1 = x0 + w, y1 = y0 + h, cx = (x0+x1)/2;
+  const W = w + padL + padR, H = h + padT + ry + padB;
+  let g = `<path d="M${x0},${y0} L${x0},${y1} A${w/2},${ry} 0 0 0 ${x1},${y1} L${x1},${y0} Z" fill="#F4EFE4"/>`;
+  g += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}" stroke="${EDGE_INK}" stroke-width="2"/><line x1="${x1}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${EDGE_INK}" stroke-width="2"/>`;
+  const topEl = `M${x0},${y0} A${w/2},${ry} 0 1 0 ${x1},${y0} A${w/2},${ry} 0 1 0 ${x0},${y0} Z`;
+  g += `<path d="${topEl}" fill="#EDE5D3" ${edgeStroke(edges.t)}/>` + edgeHit(opts,'t',`<path d="${topEl}"/>`);
+  const bot = `M${x0},${y1} A${w/2},${ry} 0 0 0 ${x1},${y1}`;
+  g += `<path d="${bot}" fill="none" ${edgeStroke(edges.b)}/>` + edgeHit(opts,'b',`<path d="${bot}"/>`);
+  g += svgLbl(cx, padT-12, `قطر ${fmtCm(D)} سم`, 13, true);
+  g += svgLbl(x0-50, (y0+y1)/2, `ارتفاع ${fmtCm(Hh)}`, 13, true) + svgLbl(x0-50, (y0+y1)/2+14, 'سم', 12);
+  return svgWrap(W, H, g);
+}
+// الشكل حسب النوع: rect | circle | corner | column — القياسات بالسنتي
+function shapeSvg(shape, a, b, c, edges, opts){
+  if(shape==='circle') return circleSvg(a, b, edges, opts);
+  if(shape==='corner') return cornerSvg(a, b, c, edges, opts);  // opts.dir اتجاه، opts.c2 الضلع التاني
+  if(shape==='column') return columnSvg(a, b, edges, opts);
+  return pieceSvg(a, b, edges, opts);
+}
+function shapeOfMeasType(type){ return type==='دائرة' ? 'circle' : type==='زاوية' ? 'corner' : type==='عامود' ? 'column' : 'rect'; }
+function shapeDimsText(p){
+  const L = fmtCm(p.l), W = fmtCm(p.w), C = fmtCm(p.h);
+  if(p.shape==='circle') return Number(p.w)>0 ? `دائرة: برا ${L} جوا ${W} سم` : `دائرة: قطر ${L} سم`;
+  if(p.shape==='corner'){ const C2 = Number(p.h2) && Number(p.h2)!==Number(p.h) ? fmtCm(p.h2) : ''; return `زاوية ${CORNER_DIR_TXT[cornerDir(p.dir)]}: ${L} × ${W}، ${C2 ? `الضلعين ${C} و ${C2}` : `الضلع ${C}`} سم`; }
+  if(p.shape==='column') return `عامود: قطر ${L}، ارتفاع ${W} سم`;
+  return (Number(p.l)>0 && Number(p.w)>0) ? `${L} × ${W} سم` : '';
+}
+function shapeHasDims(p){
+  const l = Number(p.l)>0, w = Number(p.w)>0, h = Number(p.h)>0;
+  if(p.shape==='circle') return l;
+  if(p.shape==='corner'){ const c2 = Number(p.h2)||Number(p.h); return l && w && h && Number(p.h) < Number(p.w) && c2 < Number(p.l); }
+  return l && w;
+}
+
+// كل جداول الحاسبة إلها رسمة
+function measDrawable(type){ return !!MEAS_SPECS[type]; }
+function calcRowDrawHtml(type, r){
+  const l = parseFloat(r.l)||0, w = parseFloat(r.w)||0, h = parseFloat(r.h)||0;
+  const p = {shape: shapeOfMeasType(type), l:l*100, w:w*100, h:h*100, h2:(parseFloat(r.h2)||0)*100};
+  if(p.shape==='corner' && p.l>0 && p.w>0 && p.h>0 && (p.h >= p.w || (p.h2||p.h) >= p.l)){
+    return `<div class="meas-warn">الضلع لازم يكون أصغر من الطول والعرض — كل الخانات بالمتر، مثلاً 20 سم = <b>0.20</b></div>`;
+  }
+  if(!shapeHasDims(p)) return '';
+  const cur = cornerDir(r.dir);
+  const dirBtn = p.shape==='corner' ? `<div class="corner-dirs"><span>رأس الزاوية:</span>${['tl','tr','bl','br'].map(k=>`<button type="button" class="btn btn-sm corner-dir ${k===cur?'active':''}" data-dir="${k}" title="${CORNER_DIR_TXT[k]}">${CORNER_DIR_ARROW[k]} ${CORNER_DIR_TXT[k]}</button>`).join('')}</div>` : '';
+  return shapeSvg(p.shape, p.l, p.w, p.h, r.edges, {hit:true, dir:r.dir, c2:p.h2}) + dirBtn + '<div class="piece-hint">اكبس على الضلع لتعلّمه (حسب الاختيار فوق: اروندي أو شطفة)</div>';
+}
+document.querySelectorAll('.edge-brush button[data-brush]').forEach(b=>b.addEventListener('click', ()=>{
+  edgeBrush = b.dataset.brush;
+  document.querySelectorAll('.edge-brush button[data-brush]').forEach(x=>x.classList.toggle('active', x===b));
+}));
+// زر قلب اتجاه الزاوية (يمين / يسار)
+document.addEventListener('click', e=>{
+  const btn = e.target.closest && e.target.closest('#measTablesWrap .corner-dir');
+  if(!btn) return;
+  const box = btn.closest('.piece-draw');
+  const row = measTables[box.dataset.drawT].rows[box.dataset.drawR];
+  row.dir = btn.dataset.dir;
+  box.innerHTML = calcRowDrawHtml(measTables[box.dataset.drawT].type, row);
+});
+// كبسة على ضلع بالحاسبة
+document.addEventListener('click', e=>{
+  const hit = e.target.closest && e.target.closest('#measTablesWrap .piece-edge');
+  if(!hit) return;
+  const box = hit.closest('.piece-draw');
+  const t = box.dataset.drawT, r = box.dataset.drawR, k = hit.dataset.edge;
+  const row = measTables[t].rows[r];
+  row.edges = toggleEdge(row.edges, k);
+  box.innerHTML = calcRowDrawHtml(measTables[t].type, row);
+});
+
+// ================== ورقة المعمل ==================
+// order = {workshop, customer, date, pieces:[{l,w,count,note,edges}] (بالسنتي), extras:[نص]}
+function renderFactorySheetHtml(order){
+  const esc = escHtmlText;
+  const d = order.date ? order.date.split('-').reverse().join('/') : fmtDateLatn(new Date());
+  const {cards} = factoryCardsHtml(order.pieces);
+  const extras = (order.extras||[]).map(t=>`<div class="fac-extra">${esc(t)}</div>`).join('');
+  return `
+    <div class="fac-sheet-head">
+      <div>
+        <div class="fac-ws">${order.workshop ? 'المعمل: ' + esc(order.workshop) : 'طلبية المعمل'}</div>
+        ${order.customer ? `<div class="fac-sub">الزبون: ${esc(order.customer)}</div>` : ''}
+      </div>
+      <div class="fac-date">${d}</div>
+    </div>
+    ${cards ? `<div class="fac-cards">${cards}</div>` : ''}
+    ${extras}
+    ${edgeLegendHtml(edgeTypesOf(order.pieces))}
+  `;
+}
+// رسومات صغيرة تحت بيان البند بالوصل (من جداول القياسات المرفقة بنفس النوع)
+// القطع المرسومة لنوع معيّن من جداول القياسات (بالسنتي) — بتنحفظ مع البند
+function measDrawsForType(tables, type){
+  const tbls = (tables||[]).filter(t=>t.type===type);
+  if(!tbls.length) return [];
+  return calcToFactoryOrder(tbls, '', '').pieces.filter(p=>shapeHasDims(p))
+    .map(p=>({shape:p.shape, l:p.l, w:p.w, h:p.h||0, ...(p.h2 ? {h2:p.h2} : {}), count:Number(p.count)||1, edges:p.edges||{}, note:String(p.note||'').trim(), ...(p.dir ? {dir:p.dir} : {})}));
+}
+function drawsHtml(pieces){
+  if(!pieces || !pieces.length) return '';
+  return `<div class="item-draws">${pieces.map(p=>{
+    const c = Number(p.count)||1;
+    const cap = [c>1 ? `<b>العدد: ${c}</b>` : '', p.note ? escHtmlText(p.note) : ''].filter(Boolean).join(' · ');
+    return `<div class="item-draw">${shapeSvg(p.shape, p.l, p.w, p.h, p.edges, {maxW:90, maxH:42, compact:true, dir:p.dir, c2:p.h2})}${cap?`<div class="item-draw-cap">${cap}</div>`:''}</div>`;
+  }).join('')}</div>${edgeLegendHtml(edgeTypesOf(pieces)).replace('fac-legend','fac-legend item-legend')}`;
+}
+function itemMeasDrawingsHtml(it, tables){
+  if(!it) return '';
+  if(it.draws && it.draws.length) return drawsHtml(it.draws);
+  if(!it.measType || !tables || !tables.length) return '';
+  return drawsHtml(measDrawsForType(tables, it.measType));
+}
+function factoryCardsHtml(piecesIn){
+  const esc = escHtmlText;
+  const pieces = (piecesIn||[]).filter(p=> shapeHasDims(p) || String(p.note||'').trim());
+  let hasEdges = false;
+  const cards = pieces.map((p,i)=>{
+    const c = Number(p.count)||1;
+    const dims = shapeHasDims(p) ? shapeDimsText(p) : '';
+    if(p.edges && Object.values(p.edges).some(Boolean)) hasEdges = true;
+    return `<div class="fac-card">
+      <div class="fac-card-head"><span>#${i+1} <span class="dims">${dims}</span></span><span>العدد: ${c}</span></div>
+      ${String(p.note||'').trim() ? `<div class="fac-card-note">${esc(p.note)}</div>` : ''}
+      <div class="fac-draw">${shapeSvg(p.shape, p.l, p.w, p.h, p.edges, {maxW:230, maxH:100, dir:p.dir, c2:p.h2})}</div>
+    </div>`;
+  }).join('');
+  return {cards, hasEdges};
+}
+// تحويل جداول الحاسبة (بالمتر) لطلبية معمل (بالسنتي)
+function calcToFactoryOrder(tablesArg, customerArg, dateArg){
+  const pieces = [], extras = [];
+  (tablesArg || measTables).forEach(tbl=>{
+    tbl.rows.forEach(r=>{
+      const l = parseFloat(r.l)||0, w = parseFloat(r.w)||0, h = parseFloat(r.h)||0;
+      const c = Number(r.count)||1, note = String(r.note||'').trim();
+      const shape = shapeOfMeasType(tbl.type);
+      if(shape !== 'rect'){
+        const p = {shape, l:l*100, w:w*100, h:h*100, h2:(parseFloat(r.h2)||0)*100, count:c, note, edges: Object.assign({}, r.edges||{}), ...(shape==='corner' ? {dir: cornerDir(r.dir)} : {})};
+        if(shapeHasDims(p)) pieces.push(p); else if(note) extras.push(note);
+        return;
+      }
+      if(l>0 && w>0){
+        let n = note;
+        if(tbl.type==='مكعب' && h>0) n = `سماكة ${fmtCm(h*100)} سم${n?' — '+n:''}`;
+        pieces.push({shape:'rect', l: l*100, w: w*100, count: c, note: n, edges: Object.assign({}, r.edges||{})});
+      } else if(l>0 && tbl.type==='طول'){
+        extras.push(`متر طول: ${fmtCm(l*100)} سم${c>1?` (×${c})`:''}${note?' — '+note:''}`);
+      } else if(note){
+        extras.push(note);
+      }
+    });
+  });
+  return {
+    workshop: document.getElementById('measWorkshop').value.trim(),
+    customer: customerArg !== undefined ? customerArg : document.getElementById('measCustomerName').value.trim(),
+    date: dateArg || new Date().toISOString().slice(0,10),
+    pieces, extras
+  };
+}
+async function shareFactoryOrder(order){
+  if(typeof html2canvas === 'undefined'){ toast('تعذر إنشاء الصورة — تأكد من الاتصال بالإنترنت'); return; }
+  if(!(order.pieces||[]).some(p=>shapeHasDims(p) || String(p.note||'').trim()) && !(order.extras||[]).length){ toast('ما في قطع لترسلها'); return; }
+  const area = document.getElementById('factoryPrintArea');
+  area.innerHTML = renderFactorySheetHtml(order);
+  await new Promise(r=>setTimeout(r, 100));
+  let blob;
+  try{ blob = await captureAsPage(area); }
+  catch(e){ console.error(e); toast('تعذر إنشاء الصورة'); return; }
+  const title = order.workshop ? `طلبية ${order.workshop}` : 'طلبية المعمل';
+  const fileName = `${title}-${order.date||''}.jpg`.replace(/\s+/g,'-');
+  shareImageChoice(blob, fileName, title, '');
+}
+
+
+// ================== تحويل موحّد بين: وصل / عرض سعر / Devis / Facture / حاسبة القياسات ==================
+// الأصل بيضل محفوظ متل ما هو، والجديد بيفتح لتراجعه وتحفظه. كل التفاصيل والرسمات بتنتقل.
+const CONV_TARGETS = {receipt:'وصل', simple:'عرض سعر', devis:'Devis', facture:'Facture', calc:'حاسبة القياسات'};
+function cloneItem(it){
+  return {qty: it.qty, desc: it.desc||'', unit: it.unit||'', price: it.price, amount: it.amount,
+    ...(it.measType ? {measType: it.measType} : {}), ...(it.draws && it.draws.length ? {draws: JSON.parse(JSON.stringify(it.draws))} : {})};
+}
+function docFromReceipt(r){
+  return {kind:'receipt', label:`وصل رقم ${r.no}`, name:r.name||'', phone:r.phone||'', address:r.address||'',
+    delay: r.duration ? `${r.duration} يوم` : '', duration: r.duration||'', note: r.note||'',
+    items:(r.items||[]).map(cloneItem), discount:Number(r.discount)||0,
+    tables: r.measurementTables ? JSON.parse(JSON.stringify(r.measurementTables)) : null};
+}
+function docFromInvoice(inv){
+  const lbl = inv.docType==='facture' ? 'Facture' : inv.docType==='devis' ? 'Devis' : 'عرض سعر';
+  return {kind: inv.docType||'simple', label:`${lbl} ${inv.no}`, name:inv.clientName||'', phone:inv.clientPhone||'', address:inv.clientAddress||'',
+    rc:inv.clientRC||'', nif:inv.clientNIF||'', nis:inv.clientNIS||'', delay: inv.delay||'', duration: parseInt(inv.delay,10)||'',
+    note: inv.note||'', items:(inv.items||[]).map(cloneItem), discount:0, tables:null};
+}
+// جداول قياسات من رسمات البنود (لما نرجع للحاسبة من مستند ما فيه جداول)
+function tablesFromDocItems(items){
+  const byType = {};
+  (items||[]).forEach(it=>{
+    if(!it.measType || !it.draws || !it.draws.length) return;
+    const t = byType[it.measType] = byType[it.measType] || {type: it.measType, open:true, rows:[]};
+    it.draws.forEach(d=>{
+      const m = v => (Number(v)||0) ? String(Number(((Number(v)||0)/100).toFixed(4))) : '';
+      t.rows.push({...emptyMeasRow(), l:m(d.l), w:m(d.w), h:m(d.h), h2:m(d.h2), count:d.count||1, note:d.note||'', edges:d.edges||{}, ...(d.dir?{dir:d.dir}:{})});
+    });
+  });
+  return Object.values(byType);
+}
+function convertDocTo(target, doc){
+  const today = new Date().toISOString().slice(0,10);
+  const from = doc.label ? ` (محوّل من ${doc.label})` : '';
+  if(target === 'receipt'){
+    openReceiptModal({id:'', no:getNextReceiptNo(), date:today, duration: doc.duration||'', name:doc.name, phone:doc.phone, address:doc.address,
+      note: doc.note||'', items: doc.items.map(cloneItem), discount: doc.discount||0, payments:[], ...(doc.tables ? {measurementTables: doc.tables} : {})});
+    document.getElementById('rcpId').value = '';
+    if(document.getElementById('rcpDiscount')){ document.getElementById('rcpDiscount').value = doc.discount||0; document.getElementById('rcpDiscount').dispatchEvent(new Event('input')); }
+    document.getElementById('receiptModalTitle').textContent = 'وصل جديد' + from;
+  } else if(target === 'calc'){
+    const tables = (doc.tables && doc.tables.length) ? doc.tables.map(t=>({...t, open:true})) : tablesFromDocItems(doc.items);
+    if(!tables.length){ toast('ما في قياسات بهالمستند لتنقلها للحاسبة'); return; }
+    document.querySelector('.nav-item[data-view="measurements"]').click();
+    resetMeasForm();
+    document.getElementById('measCustomerName').value = doc.name||'';
+    document.getElementById('measCustomerPhone').value = doc.phone||'';
+    measTables = tables.map(t=>({...t, rows: t.rows.map(r=>({...emptyMeasRow(), ...r}))}));
+    renderMeasTables();
+    window.scrollTo({top:0, behavior:'smooth'});
+  } else {
+    const items = doc.items.map(cloneItem);
+    if(doc.discount > 0) items.push({qty:1, desc:'خصم', unit:'', price:-doc.discount, amount:-doc.discount});
+    openInvoiceModal({id:'', docType:target, no:nextInvoiceNo(target), date:today, delay: doc.delay||'',
+      clientName:doc.name, clientAddress:doc.address, clientRC:doc.rc||'', clientNIF:doc.nif||'', clientNIS:doc.nis||'', clientPhone:doc.phone,
+      note: doc.note||'', items, payments:[]});
+    document.getElementById('invId').value = '';
+    document.getElementById('invoiceModalTitle').textContent = `${CONV_TARGETS[target]} جديد${from}`;
+  }
+  toast(`راجع ${CONV_TARGETS[target]} واحفظ — الأصل ما تغيّر`);
+}
+// زر "⇄ تحويل" مع قائمة صغيرة
+function convertMenuHtml(id, label){ return `<span class="conv-wrap"><button type="button" class="btn btn-sm" id="${id}">⇄ ${label||'تحويل'}</button><div class="conv-menu" data-for="${id}"></div></span>`; }
+function wireConvertMenu(btnId, currentKind, getDoc, beforeOpen){
+  const btn = document.getElementById(btnId); if(!btn) return;
+  const menu = btn.parentNode.querySelector('.conv-menu');
+  btn.addEventListener('click', e=>{
+    e.stopPropagation();
+    const open = menu.classList.contains('show');
+    document.querySelectorAll('.conv-menu.show').forEach(m=>m.classList.remove('show'));
+    if(open) return;
+    const cur = typeof currentKind === 'function' ? currentKind() : currentKind;
+    menu.innerHTML = Object.entries(CONV_TARGETS).filter(([k])=>k!==cur)
+      .map(([k,v])=>`<button type="button" data-target="${k}">${v}</button>`).join('');
+    menu.classList.add('show');
+  });
+  menu.addEventListener('click', e=>{
+    const b = e.target.closest('[data-target]'); if(!b) return;
+    menu.classList.remove('show');
+    const doc = getDoc(); if(!doc) return;
+    if(beforeOpen) beforeOpen();
+    convertDocTo(b.dataset.target, doc);
+  });
+}
+document.addEventListener('click', ()=>document.querySelectorAll('.conv-menu.show').forEach(m=>m.classList.remove('show')));
+
+// ---------- معاينة ورقة المعمل (بدون لوغو وبدون أسعار) ----------
+let lastFactoryOrder = null;
+function openFactoryPreview(order){
+  lastFactoryOrder = order;
+  document.getElementById('facViewWorkshop').value = order.workshop || '';
+  document.getElementById('factoryPrintArea').innerHTML = renderFactorySheetHtml(order);
+  document.getElementById('factoryViewOverlay').classList.add('show');
+}
+document.getElementById('facViewWorkshop').addEventListener('input', e=>{
+  if(!lastFactoryOrder) return;
+  lastFactoryOrder.workshop = e.target.value.trim();
+  const mw = document.getElementById('measWorkshop'); if(mw) mw.value = e.target.value;
+  document.getElementById('factoryPrintArea').innerHTML = renderFactorySheetHtml(lastFactoryOrder);
+});
+document.getElementById('btnFacViewPrint').addEventListener('click', ()=>{
+  // إذا نافذة الوصل مفتوحة تحتها، ما تنطبع معها
+  document.body.classList.add('print-factory-only');
+  window.print();
+});
+window.addEventListener('afterprint', ()=>document.body.classList.remove('print-factory-only'));
+document.getElementById('btnFacViewShare').addEventListener('click', ()=>{ if(lastFactoryOrder) shareFactoryOrder(lastFactoryOrder); });
+// ورقة المعمل من بنود وصل / عرض سعر: الرسمات والتفاصيل بس، بدون أسعار
+function factoryOrderFromItems(items, customer){
+  const pieces = [], extras = [];
+  (items||[]).forEach(it=>{
+    if(it.draws && it.draws.length) it.draws.forEach(d=>pieces.push(Object.assign({}, d)));
+    else if(String(it.desc||'').trim()) extras.push(`${it.qty ? it.qty + ' × ' : ''}${it.desc}`);
+  });
+  return {workshop: (document.getElementById('measWorkshop')||{}).value || '', customer: customer||'', date: new Date().toISOString().slice(0,10), pieces, extras};
+}
+document.getElementById('btnReceiptToFactory').addEventListener('click', ()=>{
+  const r = receipts.find(x=>x.id===currentViewedReceiptId); if(!r) return;
+  document.getElementById('viewReceiptOverlay').classList.remove('show');
+  openFactoryPreview(factoryOrderFromItems(r.items, r.name));
+});
+wireConvertMenu('btnConvReceiptView', 'receipt', ()=>{
+  const r = receipts.find(x=>x.id===currentViewedReceiptId); return r ? docFromReceipt(r) : null;
+}, ()=>document.getElementById('viewReceiptOverlay').classList.remove('show'));
+wireConvertMenu('btnConvInvoiceView', ()=>{ const inv = invoices.find(x=>x.id===currentViewedInvoiceId); return inv ? (inv.docType||'simple') : ''; }, ()=>{
+  const inv = invoices.find(x=>x.id===currentViewedInvoiceId); return inv ? docFromInvoice(inv) : null;
+}, ()=>document.getElementById('viewInvoiceOverlay').classList.remove('show'));
+// من نافذة تعديل الوصل نفسها (حتى قبل الحفظ) — بياخد اللي مكتوب هلأ
+wireConvertMenu('btnConvReceiptEdit', 'receipt', ()=>{
+  const items = [...document.querySelectorAll('#itemsBody tr')].map(row=>{
+    const q = row.querySelector('.it-qty'), d = row.querySelector('.it-desc'), pr = row.querySelector('.it-price');
+    if(!q || !d) return null;
+    const qty = Number(q.value)||0, desc = d.value.trim(), price = Number(pr.value)||0;
+    if(!desc && !qty && !price) return null;
+    return {qty, desc, unit:'', price, amount: qty*price,
+      ...(row.dataset.measType ? {measType: row.dataset.measType} : {}), ...(row.dataset.draws ? {draws: JSON.parse(row.dataset.draws)} : {})};
+  }).filter(Boolean);
+  const dur = document.getElementById('rcpDuration').value.trim();
+  return {kind:'receipt', label: `وصل رقم ${document.getElementById('rcpNo').value}`,
+    name: document.getElementById('rcpName').value.trim(), phone: document.getElementById('rcpPhone').value.trim(), address: document.getElementById('rcpAddress').value.trim(),
+    delay: dur ? `${dur} يوم` : '', duration: dur, note: document.getElementById('rcpNote').value.trim(),
+    items, discount: Number(document.getElementById('rcpDiscount').value)||0,
+    tables: (typeof receiptMeasTables!=='undefined' && receiptMeasTables.length) ? JSON.parse(JSON.stringify(receiptMeasTables)) : null};
+}, ()=>{ convertingFromInvoiceId = null; document.getElementById('receiptOverlay').classList.remove('show'); });
+
+// من نافذة تعديل عرض السعر / Devis / Facture (حتى قبل الحفظ)
+wireConvertMenu('btnConvInvoiceEdit', ()=>document.getElementById('invDocType').value, ()=>{
+  const items = [...document.querySelectorAll('#invItemsBody tr')].map(row=>{
+    const q = row.querySelector('.inv-it-qty'), d = row.querySelector('.inv-it-desc'), pr = row.querySelector('.inv-it-price'), u = row.querySelector('.inv-it-unit');
+    if(!q || !d) return null;
+    const qty = Number(q.value)||0, desc = d.value.trim(), price = Number(pr.value)||0;
+    if(!desc && !qty && !price) return null;
+    return {qty, desc, unit: u ? u.value.trim() : '', price, amount: qty*price,
+      ...(row.dataset.measType ? {measType: row.dataset.measType} : {}), ...(row.dataset.draws ? {draws: JSON.parse(row.dataset.draws)} : {})};
+  }).filter(Boolean);
+  const v = id => (document.getElementById(id)||{}).value || '';
+  const dt = v('invDocType'), lbl = dt==='facture' ? 'Facture' : dt==='devis' ? 'Devis' : 'عرض سعر';
+  return {kind: dt, label: `${lbl} ${v('invNo')}`, name: v('invClientName').trim(), phone: v('invClientPhone').trim(), address: v('invClientAddress').trim(),
+    rc: v('invClientRC'), nif: v('invClientNIF'), nis: v('invClientNIS'), delay: v('invDelay'), duration: parseInt(v('invDelay'),10)||'',
+    note: v('invNote').trim(), items, discount:0, tables:null};
+}, ()=>document.getElementById('invoiceOverlay').classList.remove('show'));
+
+// من الحاسبة / القياسات المحفوظة
+function docFromMeasRec(rec){
+  const items = measItemsFromTotals(computeMeasTotalsFrom(rec.tables), rec.tables).map(it=>({...it, unit:'', amount:0}));
+  return {kind:'calc', label:'', name:rec.customerName||'', phone:rec.customerPhone||'', address:'', delay:'', duration:'', note:'', items, discount:0, tables: JSON.parse(JSON.stringify(rec.tables))};
+}
+wireConvertMenu('btnConvCalc', 'calc', ()=>{ const rec = buildMeasurementRecord(); return rec ? docFromMeasRec(rec) : null; });
+wireConvertMenu('btnConvMeasView', 'calc', ()=>{
+  const rec = measurementsList.find(r=>r.id===currentViewedMeasurementId); return rec ? docFromMeasRec(rec) : null;
+}, ()=>document.getElementById('measurementsViewOverlay').classList.remove('show'));
+
+document.getElementById('btnInvoiceToFactory').addEventListener('click', ()=>{
+  const inv = invoices.find(x=>x.id===currentViewedInvoiceId); if(!inv) return;
+  document.getElementById('viewInvoiceOverlay').classList.remove('show');
+  openFactoryPreview(factoryOrderFromItems(inv.items, inv.clientName));
+});
+
 function handleMeasArrowNav(e, scopeEl){
   const t = e.target.dataset.t, r = parseInt(e.target.dataset.r, 10), f = e.target.dataset.f;
   if(e.key === 'ArrowUp' || e.key === 'ArrowDown'){
@@ -3335,6 +4392,12 @@ function handleMeasArrowNav(e, scopeEl){
     const targetEl = scopeEl.querySelector(`input[data-t="${t}"][data-r="${targetR}"][data-f="${f}"]`);
     if(targetEl){ e.preventDefault(); targetEl.focus(); targetEl.select(); }
   } else if(e.key === 'ArrowLeft' || e.key === 'ArrowRight'){
+    // خانة التفاصيل نص: الأسهم بتحرك المؤشر جوا الكلام، وبتنقل للخانة الجنب بس إذا المؤشر بطرف النص
+    if(f === 'note'){
+      const el = e.target, atStart = el.selectionStart === 0 && el.selectionEnd === 0, atEnd = el.selectionStart === el.value.length;
+      // RTL: يمين = بداية النص، يسار = آخره
+      if(!(e.key === 'ArrowRight' && atStart) && !(e.key === 'ArrowLeft' && atEnd) && el.value) return;
+    }
     // نقلة فورية بين الخانات بالأسهم يمين/يسار، متل الإكسل — بلا شرط على مكان المؤشر جوا النص.
     const rowFields = [...scopeEl.querySelectorAll(`input[data-t="${t}"][data-r="${r}"]`)];
     const idx = rowFields.indexOf(e.target);
@@ -3353,16 +4416,16 @@ function renderMeasTables(){
   measTables.forEach((tbl, ti)=>{
     const spec = MEAS_SPECS[tbl.type];
     const box = document.createElement('div');
-    box.className = 'meas-table-box';
+    box.className = 'meas-table-box' + (measHasNote(tbl.type) ? ' with-note' : '') + (spec.cols.length===4 ? ' with-4' : '');
     let headCols = spec.cols.map(c=>`<span>${c}</span>`).join('');
     let rowsHtml = tbl.rows.map((r,ri)=>{
       let inputs = spec.cols.map((c,ci)=>{
-        const field = ci===0?'l':ci===1?'w':'h';
+        const field = ['l','w','h','h2'][ci];
         return `<input type="text" inputmode="decimal" dir="ltr" style="text-align:right;" data-t="${ti}" data-r="${ri}" data-f="${field}" value="${r[field]||''}">`;
       }).join('');
-      const pad = spec.cols.length < 3 ? '<span></span>'.repeat(3-spec.cols.length) : '';
+      const pad = measHasNote(tbl.type) ? measNoteInput(tbl, ti, ri, r) : (spec.cols.length < 3 ? '<span></span>'.repeat(3-spec.cols.length) : '');
       const count = r.count===undefined || r.count===null || r.count==='' ? 1 : r.count;
-      const base = measResultFor(tbl.type, r.l, r.w, r.h);
+      const base = measResultFor(tbl.type, r.l, r.w, r.h, r.h2);
       const total = base.value * (Number(count)||1);
       const unit = tbl.type==='طول' ? ' م.ط' : (tbl.type==='مكعب' ? ' م³' : ' م²');
       const resLabel = total.toFixed(tbl.type==='مكعب'?3:2) + unit;
@@ -3372,33 +4435,38 @@ function renderMeasTables(){
         <input type="text" inputmode="decimal" dir="ltr" style="text-align:right;" data-t="${ti}" data-r="${ri}" data-f="count" value="${count}" title="العدد">
         <span class="meas-result" data-result-t="${ti}" data-result-r="${ri}">${resLabel}</span>
         <button type="button" class="btn btn-ghost btn-sm" data-delrow="${ti}-${ri}" title="حذف">✕</button>
+        ${measDrawable(tbl.type) ? `<div class="piece-draw" data-draw-t="${ti}" data-draw-r="${ri}">${calcRowDrawHtml(tbl.type, r)}</div>` : ''}
       </div>`;
     }).join('');
     box.innerHTML = `
-      <div class="meas-table-head">
-        <span class="meas-title">${spec.label}</span>
+      <div class="meas-table-head meas-toggle" data-toggle-t="${ti}">
+        <span class="meas-title"><span class="meas-arrow">${tbl.open?'▾':'◂'}</span> ${spec.label} <span class="meas-sum">${measTableSummary(tbl)}</span></span>
         <button type="button" class="btn btn-sm btn-danger" data-deltable="${ti}">حذف الجدول</button>
       </div>
+      <div class="meas-body" style="${tbl.open?'':'display:none;'}">
       <div class="meas-row-grid" style="font-size:12px; color:var(--text-dim); font-weight:700;">
-        <span></span>${headCols}${spec.cols.length<3?'<span></span>'.repeat(3-spec.cols.length):''}<span>العدد</span><span>النتيجة</span><span></span>
+        <span></span>${headCols}${measHasNote(tbl.type)?'<span>التفاصيل</span>':(spec.cols.length<3?'<span></span>'.repeat(3-spec.cols.length):'')}<span>العدد</span><span>النتيجة</span><span></span>
       </div>
       ${rowsHtml}
       <button type="button" class="btn btn-sm" data-addrow="${ti}" style="margin-top:6px;">+ إضافة قياس</button>
+      </div>
     `;
     wrap.appendChild(box);
   });
+  wireMeasToggles(wrap, measTables);
   renderMeasTotals(measTables);
 
   wrap.querySelectorAll('input').forEach(el=>{
     el.addEventListener('keydown', e=>handleMeasArrowNav(e, wrap));
     el.addEventListener('input', e=>{
       const t = e.target.dataset.t, r = e.target.dataset.r, f = e.target.dataset.f;
+      if(f === 'note'){ measTables[t].rows[r].note = e.target.value; return; }
       let clean;
       {
         const raw = e.target.value.replace(/,/g, '.');
         if(raw.includes('.')){
           const parts = raw.replace(/[^0-9.]/g, '').split('.');
-          clean = parts[0] + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
+          clean = (parts[0]||'0') + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
         } else {
           const digits = raw.replace(/[^0-9]/g, '');
           if(digits.length === 0){ clean = ''; }
@@ -3413,11 +4481,13 @@ function renderMeasTables(){
       measTables[t].rows[r][f] = clean;
       const row = measTables[t].rows[r];
       const count = row.count===undefined || row.count===null || row.count==='' ? 1 : row.count;
-      const base = measResultFor(measTables[t].type, row.l, row.w, row.h);
+      const base = measResultFor(measTables[t].type, row.l, row.w, row.h, row.h2);
       const total = base.value * (Number(count)||1);
       const unit = measTables[t].type==='طول' ? ' م.ط' : (measTables[t].type==='مكعب' ? ' م³' : ' م²');
       const resultEl = wrap.querySelector(`.meas-result[data-result-t="${t}"][data-result-r="${r}"]`);
       if(resultEl) resultEl.textContent = total.toFixed(measTables[t].type==='مكعب'?3:2) + unit;
+      const drawEl = wrap.querySelector(`.piece-draw[data-draw-t="${t}"][data-draw-r="${r}"]`);
+      if(drawEl) drawEl.innerHTML = calcRowDrawHtml(measTables[t].type, row);
       renderMeasTotals(measTables);
     });
   });
@@ -3443,12 +4513,15 @@ function renderMeasTables(){
 }
 
 function addMeasTable(type){
-  measTables.push({type, rows: Array.from({length:10}, emptyMeasRow)});
+  measTables.push({type, open:true, rows: Array.from({length:10}, emptyMeasRow)});
   renderMeasTables();
 }
 document.getElementById('btnMeasAddSq').addEventListener('click', ()=>addMeasTable('مربع'));
 document.getElementById('btnMeasAddLen').addEventListener('click', ()=>addMeasTable('طول'));
 document.getElementById('btnMeasAddCube').addEventListener('click', ()=>addMeasTable('مكعب'));
+document.getElementById('btnMeasAddCol').addEventListener('click', ()=>addMeasTable('عامود'));
+document.getElementById('btnMeasAddCircle').addEventListener('click', ()=>addMeasTable('دائرة'));
+document.getElementById('btnMeasAddCorner').addEventListener('click', ()=>addMeasTable('زاوية'));
 
 // ---------- جداول القياسات المرفقة بنافذة الوصل (قابلة للتعديل والإضافة حتى بعد الحفظ) ----------
 let receiptMeasTables = [];
@@ -3460,16 +4533,16 @@ function renderReceiptMeasTables(){
   receiptMeasTables.forEach((tbl, ti)=>{
     const spec = MEAS_SPECS[tbl.type];
     const box = document.createElement('div');
-    box.className = 'meas-table-box';
+    box.className = 'meas-table-box' + (measHasNote(tbl.type) ? ' with-note' : '') + (spec.cols.length===4 ? ' with-4' : '');
     let headCols = spec.cols.map(c=>`<span>${c}</span>`).join('');
     let rowsHtml = tbl.rows.map((r,ri)=>{
       let inputs = spec.cols.map((c,ci)=>{
-        const field = ci===0?'l':ci===1?'w':'h';
+        const field = ['l','w','h','h2'][ci];
         return `<input type="text" inputmode="decimal" dir="ltr" style="text-align:right;" data-t="${ti}" data-r="${ri}" data-f="${field}" value="${r[field]||''}">`;
       }).join('');
-      const pad = spec.cols.length < 3 ? '<span></span>'.repeat(3-spec.cols.length) : '';
+      const pad = measHasNote(tbl.type) ? measNoteInput(tbl, ti, ri, r) : (spec.cols.length < 3 ? '<span></span>'.repeat(3-spec.cols.length) : '');
       const count = r.count===undefined || r.count===null || r.count==='' ? 1 : r.count;
-      const base = measResultFor(tbl.type, r.l, r.w, r.h);
+      const base = measResultFor(tbl.type, r.l, r.w, r.h, r.h2);
       const total = base.value * (Number(count)||1);
       const unit = tbl.type==='طول' ? ' م.ط' : (tbl.type==='مكعب' ? ' م³' : ' م²');
       const resLabel = total.toFixed(tbl.type==='مكعب'?3:2) + unit;
@@ -3482,29 +4555,33 @@ function renderReceiptMeasTables(){
       </div>`;
     }).join('');
     box.innerHTML = `
-      <div class="meas-table-head">
-        <span class="meas-title">${spec.label}</span>
+      <div class="meas-table-head meas-toggle" data-toggle-t="${ti}">
+        <span class="meas-title"><span class="meas-arrow">${tbl.open?'▾':'◂'}</span> ${spec.label} <span class="meas-sum">${measTableSummary(tbl)}</span></span>
         <button type="button" class="btn btn-sm btn-danger" data-rcp-deltable="${ti}">حذف الجدول</button>
       </div>
+      <div class="meas-body" style="${tbl.open?'':'display:none;'}">
       <div class="meas-row-grid" style="font-size:12px; color:var(--text-dim); font-weight:700;">
-        <span></span>${headCols}${spec.cols.length<3?'<span></span>'.repeat(3-spec.cols.length):''}<span>العدد</span><span>النتيجة</span><span></span>
+        <span></span>${headCols}${measHasNote(tbl.type)?'<span>التفاصيل</span>':(spec.cols.length<3?'<span></span>'.repeat(3-spec.cols.length):'')}<span>العدد</span><span>النتيجة</span><span></span>
       </div>
       ${rowsHtml}
       <button type="button" class="btn btn-sm" data-rcp-addrow="${ti}" style="margin-top:6px;">+ إضافة قياس</button>
+      </div>
     `;
     wrap.appendChild(box);
   });
+  wireMeasToggles(wrap, receiptMeasTables);
 
   wrap.querySelectorAll('input').forEach(el=>{
     el.addEventListener('keydown', e=>handleMeasArrowNav(e, wrap));
     el.addEventListener('input', e=>{
       const t = e.target.dataset.t, r = e.target.dataset.r, f = e.target.dataset.f;
+      if(f === 'note'){ receiptMeasTables[t].rows[r].note = e.target.value; return; }
       let clean;
       {
         const raw = e.target.value.replace(/,/g, '.');
         if(raw.includes('.')){
           const parts = raw.replace(/[^0-9.]/g, '').split('.');
-          clean = parts[0] + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
+          clean = (parts[0]||'0') + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
         } else {
           const digits = raw.replace(/[^0-9]/g, '');
           if(digits.length === 0){ clean = ''; }
@@ -3519,7 +4596,7 @@ function renderReceiptMeasTables(){
       receiptMeasTables[t].rows[r][f] = clean;
       const row = receiptMeasTables[t].rows[r];
       const count = row.count===undefined || row.count===null || row.count==='' ? 1 : row.count;
-      const base = measResultFor(receiptMeasTables[t].type, row.l, row.w, row.h);
+      const base = measResultFor(receiptMeasTables[t].type, row.l, row.w, row.h, row.h2);
       const total = base.value * (Number(count)||1);
       const unit = receiptMeasTables[t].type==='طول' ? ' م.ط' : (receiptMeasTables[t].type==='مكعب' ? ' م³' : ' م²');
       const resultEl = wrap.querySelector(`.meas-result[data-rcp-result-t="${t}"][data-rcp-result-r="${r}"]`);
@@ -3548,19 +4625,20 @@ function renderReceiptMeasTables(){
 }
 
 function addReceiptMeasTable(type){
-  receiptMeasTables.push({type, rows: Array.from({length:5}, emptyMeasRow)});
+  receiptMeasTables.push({type, open:true, rows: Array.from({length:5}, emptyMeasRow)});
   renderReceiptMeasTables();
 }
 document.getElementById('btnRcpMeasAddSq').addEventListener('click', ()=>addReceiptMeasTable('مربع'));
 document.getElementById('btnRcpMeasAddLen').addEventListener('click', ()=>addReceiptMeasTable('طول'));
 document.getElementById('btnRcpMeasAddCube').addEventListener('click', ()=>addReceiptMeasTable('مكعب'));
+document.getElementById('btnRcpMeasAddCol').addEventListener('click', ()=>addReceiptMeasTable('عامود'));
 
-function buildMeasurementRecord(){
+function buildMeasurementRecord(allowNoName){
   const name = document.getElementById('measCustomerName').value.trim();
-  if(!name){ toast('يرجى إدخال اسم الزبون'); return null; }
+  if(!name && !allowNoName){ setMeasWho('customer'); toast('يرجى إدخال اسم الزبون'); return null; }
   const tables = measTables.map(tbl=>({
     type: tbl.type,
-    rows: tbl.rows.filter(r=> (r.l!=='' && r.l!==null) || (r.w!=='' && r.w!==null) || (r.h!=='' && r.h!==null))
+    rows: tbl.rows.filter(measRowFilled)
   })).filter(tbl=>tbl.rows.length>0);
   if(tables.length===0){ toast('يرجى إدخال قياس واحد على الأقل'); return null; }
   return {
@@ -3573,12 +4651,32 @@ function buildMeasurementRecord(){
 }
 
 async function saveMeasurementRecord(rec){
-  measurementsList.push(rec);
+  const idx = editingMeasurementId ? measurementsList.findIndex(r=>r.id===editingMeasurementId) : -1;
+  if(idx >= 0){
+    rec.id = editingMeasurementId;
+    rec.date = measurementsList[idx].date || rec.date;
+    measurementsList[idx] = rec;
+  } else {
+    measurementsList.push(rec);
+  }
   saveMeasurementsList();
   renderMeasurementsTable();
 }
 
+// زبون / معمل بخانة الاسم فوق الحاسبة
+function setMeasWho(who){
+  document.querySelectorAll('.who-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.who===who));
+  document.getElementById('measCustomerName').style.display = who==='customer' ? '' : 'none';
+  document.getElementById('measCustomerPhone').style.display = who==='customer' ? '' : 'none';
+  document.getElementById('measWorkshop').style.display = who==='workshop' ? '' : 'none';
+  (who==='customer' ? document.getElementById('measCustomerName') : document.getElementById('measWorkshop')).focus();
+}
+document.querySelectorAll('.who-toggle button').forEach(b=>b.addEventListener('click', ()=>setMeasWho(b.dataset.who)));
+
 function resetMeasForm(){
+  editingMeasurementId = null;
+  if(document.querySelector('.who-toggle')){ document.querySelectorAll('.who-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.who==='customer')); document.getElementById('measCustomerName').style.display=''; document.getElementById('measCustomerPhone').style.display=''; document.getElementById('measWorkshop').style.display='none'; }
+  if(typeof updateMeasEditBanner === 'function') updateMeasEditBanner();
   document.getElementById('measCustomerName').value = '';
   document.getElementById('measCustomerPhone').value = '';
   measTables = [{type:'مربع', rows: Array.from({length:10}, emptyMeasRow)}];
@@ -3603,14 +4701,76 @@ document.getElementById('btnMeasSavePrint').addEventListener('click', async ()=>
   resetMeasForm();
 });
 
+// نص القياسات يلي بينكتب بالبيان: مثلاً "عامود (م²): قطر 0.50 × ارتفاع 3 (×2)، ..."
+function measDetailsForType(tables, type){
+  const n = v => { const x = parseFloat(v)||0; return String(Number(x.toFixed(3))); };
+  const parts = [];
+  (tables||[]).filter(t=>t.type===type).forEach(t=>t.rows.forEach(r=>{
+    const note = String(r.note||'').trim();
+    const hasDims = !!(parseFloat(r.l)||parseFloat(r.w)||parseFloat(r.h));
+    if(!hasDims){ if(note) parts.push(note); return; }
+    const c = Number(r.count)||1;
+    let d;
+    if(type==='عامود'){
+      const one = (parseFloat(r.l)||0)*3.14*(parseFloat(r.w)||0);
+      d = `قطر ${n(r.l)} × ارتفاع ${n(r.w)} (العامود ${one.toFixed(2)} م²)`;
+      parts.push(`${d} — العدد: ${c}${note ? ' ' + note : ''}`);
+      return;
+    }
+    else if(type==='دائرة') d = parseFloat(r.w) ? `قطر برا ${n(r.l)} جوا ${n(r.w)}` : `قطر ${n(r.l)}`;
+    else if(type==='زاوية') d = `${CORNER_DIR_TXT[cornerDir(r.dir)]} ${n(r.l)}×${n(r.w)} ${parseFloat(r.h2) && parseFloat(r.h2)!==parseFloat(r.h) ? `الضلعين ${n(r.h)} و ${n(r.h2)}` : `الضلع ${n(r.h)}`}`;
+    else if(type==='طول') d = `${n(r.l)}`;
+    else if(type==='مكعب') d = `${n(r.l)}×${n(r.w)}×${n(r.h)}`;
+    else d = `${n(r.l)}×${n(r.w)}`;
+    d = c > 1 ? `${d} (×${c})` : d;
+    parts.push(note ? `${d} ${note}` : d);
+  }));
+  return parts.join('، ');
+}
+function measItemsFromTotals(totals, tables){
+  const items = [];
+  const desc = (label, type) => { const d = measDetailsForType(tables, type); return d ? `${label}: ${d}` : label; };
+  if(totals['مربع'] > 0 || measDetailsForType(tables,'مربع')) items.push({qty: Number(totals['مربع'].toFixed(2)), desc: desc('متر مربع','مربع'), price:'', measType:'مربع'});
+  if(totals['طول'] > 0 || measDetailsForType(tables,'طول')) items.push({qty: Number(totals['طول'].toFixed(2)), desc: desc('متر طول','طول'), price:'', measType:'طول'});
+  if(totals['مكعب'] > 0) items.push({qty: Number(totals['مكعب'].toFixed(3)), desc: desc('متر مكعب','مكعب'), price:'', measType:'مكعب'});
+  if(totals['عامود'] > 0) items.push({qty: Number(totals['عامود'].toFixed(2)), desc: desc('عامود (م²)','عامود'), price:'', measType:'عامود'});
+  if(totals['دائرة'] > 0) items.push({qty: Number(totals['دائرة'].toFixed(2)), desc: desc('دوائر (م²)','دائرة'), price:'', measType:'دائرة'});
+  if(totals['زاوية'] > 0) items.push({qty: Number(totals['زاوية'].toFixed(2)), desc: desc('زوايا (م²)','زاوية'), price:'', measType:'زاوية'});
+  return items.map(it=> it.measType ? Object.assign(it, {draws: measDrawsForType(tables, it.measType)}) : it);
+}
+
+document.getElementById('btnMeasConvertQuote').addEventListener('click', ()=>{
+  const rec = buildMeasurementRecord();
+  if(!rec) return;
+  convertMeasToQuote(rec);
+  resetMeasForm();
+});
+function convertMeasToQuote(rec){
+  const items = measItemsFromTotals(computeMeasTotalsFrom(rec.tables), rec.tables)
+    .map(it=>({qty: it.qty, desc: it.desc, unit:'', price:'', amount:0, measType: it.measType, draws: it.draws}));
+  const pseudoInvoice = {
+    id: '', docType: 'simple', no: nextInvoiceNo('simple'),
+    date: new Date().toISOString().slice(0,10), delay: '',
+    clientName: rec.customerName, clientAddress: '', clientRC: '', clientNIF: '', clientNIS: '',
+    clientPhone: rec.customerPhone || '',
+    note: '',
+    items, payments: []
+  };
+  openInvoiceModal(pseudoInvoice);
+  document.getElementById('invId').value = '';
+  document.getElementById('invoiceModalTitle').textContent = 'عرض سعر جديد (محوّل من قياسات)';
+  toast('عبّي السعر لكل بند ثم احفظ عرض السعر');
+}
+
 document.getElementById('btnMeasConvertReceipt').addEventListener('click', ()=>{
   const rec = buildMeasurementRecord();
   if(!rec) return;
+  convertMeasToReceipt(rec);
+  resetMeasForm();
+});
+function convertMeasToReceipt(rec){
   const totals = computeMeasTotalsFrom(rec.tables);
-  const items = [];
-  if(totals['مربع'] > 0) items.push({qty: Number(totals['مربع'].toFixed(2)), desc: 'متر مربع', price:''});
-  if(totals['طول'] > 0) items.push({qty: Number(totals['طول'].toFixed(2)), desc: 'متر طول', price:''});
-  if(totals['مكعب'] > 0) items.push({qty: Number(totals['مكعب'].toFixed(3)), desc: 'متر مكعب', price:''});
+  const items = measItemsFromTotals(totals, rec.tables);
   const pseudoReceipt = {
     id: '',
     no: getNextReceiptNo(),
@@ -3619,7 +4779,7 @@ document.getElementById('btnMeasConvertReceipt').addEventListener('click', ()=>{
     name: rec.customerName,
     phone: rec.customerPhone || '',
     address: '',
-    note: 'محوّل من حاسبة القياسات',
+    note: '',
     items,
     payments: [],
     measurementTables: rec.tables
@@ -3628,8 +4788,54 @@ document.getElementById('btnMeasConvertReceipt').addEventListener('click', ()=>{
   document.getElementById('rcpId').value = '';
   document.getElementById('receiptModalTitle').textContent = 'وصل جديد (محوّل من قياسات)';
   toast('عبّي السعر لكل بند ثم احفظ الوصل');
-  resetMeasForm();
+}
+
+// أزرار نافذة القياسات المحفوظة: تعديل / تحويل لوصل / تحويل لعرض سعر
+function currentViewedMeasRec(){ return measurementsList.find(r=>r.id===currentViewedMeasurementId); }
+document.getElementById('btnMeasViewToReceipt').addEventListener('click', ()=>{
+  const rec = currentViewedMeasRec(); if(!rec) return;
+  document.getElementById('measurementsViewOverlay').classList.remove('show');
+  convertMeasToReceipt(JSON.parse(JSON.stringify(rec)));
 });
+document.getElementById('btnMeasViewToQuote').addEventListener('click', ()=>{
+  const rec = currentViewedMeasRec(); if(!rec) return;
+  document.getElementById('measurementsViewOverlay').classList.remove('show');
+  convertMeasToQuote(JSON.parse(JSON.stringify(rec)));
+});
+document.getElementById('btnEditMeasurementsView').addEventListener('click', ()=>{
+  const rec = currentViewedMeasRec(); if(rec) editMeasurementRecord(rec.id);
+});
+// تعديل قياس محفوظ: بيرجع للحاسبة، والحفظ بيعدّل نفس السجل بدل ما يعمل واحد جديد
+let editingMeasurementId = null;
+function editMeasurementRecord(id){
+  const rec = measurementsList.find(r=>r.id===id); if(!rec) return;
+  document.getElementById('measurementsViewOverlay').classList.remove('show');
+  document.querySelector('.nav-item[data-view="measurements"]').click();
+  editingMeasurementId = id;
+  document.getElementById('measCustomerName').value = rec.customerName||'';
+  document.getElementById('measCustomerPhone').value = rec.customerPhone||'';
+  measTables = JSON.parse(JSON.stringify(rec.tables)).map(t=>({...t, open:true, rows: t.rows.map(r=>({...emptyMeasRow(), ...r}))}));
+  measTables.forEach(t=>{ while(t.rows.length < 3) t.rows.push(emptyMeasRow()); });
+  renderMeasTables();
+  updateMeasEditBanner();
+  window.scrollTo({top:0, behavior:'smooth'});
+  toast('عدّل القياسات واضغط حفظ');
+}
+function updateMeasEditBanner(){
+  let b = document.getElementById('measEditBanner');
+  if(!b){
+    b = document.createElement('div'); b.id = 'measEditBanner';
+    b.style.cssText = 'background:#FFF4D6; border:1px solid #E8C873; border-radius:8px; padding:8px 12px; margin-bottom:12px; font-weight:700; display:flex; justify-content:space-between; align-items:center; gap:8px;';
+    const wrap = document.getElementById('measTablesWrap');
+    wrap.parentNode.insertBefore(b, wrap.parentNode.firstChild);
+  }
+  const rec = editingMeasurementId ? measurementsList.find(r=>r.id===editingMeasurementId) : null;
+  document.getElementById('btnMeasSaveOnly').textContent = rec ? 'حفظ التعديل' : 'حفظ فقط';
+  if(!rec){ b.style.display = 'none'; return; }
+  b.style.display = 'flex';
+  b.innerHTML = `<span>✏️ عم تعدّل قياسات: ${escHtmlText(rec.customerName||'')} — <span dir="ltr">${(rec.date||'').split('-').reverse().join('/')}</span></span><button type="button" class="btn btn-sm" id="btnCancelMeasEdit">إلغاء التعديل</button>`;
+  document.getElementById('btnCancelMeasEdit').addEventListener('click', ()=>{ resetMeasForm(); });
+}
 
 function renderMeasurementsTable(){
   const wrap = document.getElementById('measurementsTableWrap');
@@ -3650,6 +4856,7 @@ function renderMeasurementsTable(){
       <td>
         <div class="row-actions">
           <button class="btn btn-sm btn-ghost" onclick="viewMeasurementRecord('${rec.id}')" title="عرض/طباعة">👁</button>
+          <button class="btn btn-sm btn-ghost" onclick="editMeasurementRecord('${rec.id}')" title="تعديل">✏️</button>
           <button class="btn btn-sm btn-ghost" onclick="deleteMeasurementRecord('${rec.id}')" title="حذف">🗑</button>
         </div>
       </td>
@@ -3667,9 +4874,16 @@ async function deleteMeasurementRecord(id){
   toast('تم الحذف');
 }
 
+let currentViewedMeasurementId = null;
 function viewMeasurementRecord(id){
   const rec = measurementsList.find(r=>r.id===id);
   if(!rec) return;
+  currentViewedMeasurementId = id;
+  renderMeasurementRecordInto(rec);
+  document.getElementById('measurementsViewOverlay').classList.add('show');
+}
+// بيرسم ورقة القياسات (نفس شكل الطباعة) — بتستعمل للعرض وللمشاركة كصورة
+function renderMeasurementRecordInto(rec){
   const measDocHead = `
     <div class="receipt-top">
       <div class="receipt-brand">
@@ -3694,24 +4908,25 @@ function viewMeasurementRecord(id){
     const headCols = spec.cols.map(c=>`<th>${c}</th>`).join('');
     const rowsHtml = tbl.rows.map((r,i)=>{
       const cells = spec.cols.map((c,ci)=>{
-        const field = ci===0?'l':ci===1?'w':'h';
-        return `<td>${r[field]||'—'}</td>`;
+        const field = ['l','w','h','h2'][ci];
+        return `<td>${measNumShow(r[field])}</td>`;
       }).join('');
       const count = r.count===undefined || r.count===null || r.count==='' ? 1 : r.count;
-      const base = measResultFor(tbl.type, r.l, r.w, r.h);
+      const base = measResultFor(tbl.type, r.l, r.w, r.h, r.h2);
       const total = base.value * (Number(count)||1);
       const unit = tbl.type==='طول' ? ' م.ط' : (tbl.type==='مكعب' ? ' م³' : ' م²');
       const resLabel = total.toFixed(tbl.type==='مكعب'?3:2) + unit;
-      return `<tr><td>${i+1}</td>${cells}<td>${count}</td><td>${resLabel}</td></tr>`;
+      const noteTd = measHasNote(tbl.type) ? `<td style="text-align:right;">${escHtmlText(r.note||'')}</td>` : '';
+      return `<tr><td>${i+1}</td>${cells}${noteTd}<td>${count}</td><td>${resLabel}</td></tr>`;
     }).join('');
     const headRow = tblIndex===0
-      ? `<tr class="print-head-row"><td colspan="${spec.cols.length+3}">${measDocHead}<div style="font-weight:700; color:var(--brass-deep); margin:10px 0 6px;">${spec.label}</div></td></tr>`
+      ? `<tr class="print-head-row"><td colspan="${spec.cols.length+3+(measHasNote(tbl.type)?1:0)}">${measDocHead}<div style="font-weight:700; color:var(--brass-deep); margin:10px 0 6px;">${spec.label}</div></td></tr>`
       : '';
     return `
       <div style="margin-top:14px;">
         ${tblIndex>0 ? `<div style="font-weight:700; color:var(--brass-deep); margin-bottom:6px;">${spec.label}</div>` : ''}
         <table class="meas-print-table">
-          <thead>${headRow}<tr><th>#</th>${headCols}<th>العدد</th><th>النتيجة</th></tr></thead>
+          <thead>${headRow}<tr><th>#</th>${headCols}${measHasNote(tbl.type)?'<th>التفاصيل</th>':''}<th>العدد</th><th>النتيجة</th></tr></thead>
           <tbody>${rowsHtml}</tbody>
         </table>
       </div>`;
@@ -3723,27 +4938,90 @@ function viewMeasurementRecord(id){
       ${t['مربع']>0 ? `<div><b>إجمالي متر مربع:</b> ${t['مربع'].toFixed(2)} م²</div>` : ''}
       ${t['طول']>0 ? `<div><b>إجمالي متر طول:</b> ${t['طول'].toFixed(2)} م.ط</div>` : ''}
       ${t['مكعب']>0 ? `<div><b>إجمالي متر مكعب:</b> ${t['مكعب'].toFixed(3)} م³</div>` : ''}
+      ${t['عامود']>0 ? `<div><b>إجمالي العواميد:</b> ${t['عامود'].toFixed(2)} م²</div>` : ''}
+      ${t['دائرة']>0 ? `<div><b>إجمالي الدوائر:</b> ${t['دائرة'].toFixed(2)} م²</div>` : ''}
+      ${t['زاوية']>0 ? `<div><b>إجمالي الزوايا:</b> ${t['زاوية'].toFixed(2)} م²</div>` : ''}
     </div>`;
 
+  const draw = factoryCardsHtml(calcToFactoryOrder(rec.tables, rec.customerName||'', rec.date).pieces.filter(p=>shapeHasDims(p)));
+  const drawingsHtml = draw.cards ? `
+    <div style="margin-top:16px;">
+      <div style="font-weight:700; color:var(--brass-deep); margin-bottom:8px;">الرسومات</div>
+      <div class="fac-cards">${draw.cards}</div>
+      ${edgeLegendHtml(edgeTypesOf(calcToFactoryOrder(rec.tables, rec.customerName||'', rec.date).pieces))}
+    </div>` : '';
   document.getElementById('measurementsPrintArea').innerHTML = `
     ${tablesHtml}
     ${totalsHtml}
+    ${drawingsHtml}
   `;
-  document.getElementById('measurementsViewOverlay').classList.add('show');
 }
 document.getElementById('btnPrintMeasurementsView').addEventListener('click', ()=>window.print());
+
+// مشاركة ورقة القياسات كصورة (للمعمل مثلاً) — بدون تحويل لوصل أو عرض سعر وبدون حفظ
+async function shareMeasurementRecord(rec){
+  if(typeof html2canvas === 'undefined'){ toast('تعذر إنشاء الصورة — تأكد من الاتصال بالإنترنت'); return; }
+  renderMeasurementRecordInto(rec);
+  await new Promise(r=>setTimeout(r, 150));
+  let blob;
+  try{ blob = await captureAsPage(document.getElementById('measurementsPrintArea')); }
+  catch(e){ console.error(e); toast('تعذر إنشاء الصورة'); return; }
+  const who = rec.customerName ? ` — ${rec.customerName}` : '';
+  const fileName = `قياسات${rec.customerName ? '-' + rec.customerName : ''}-${rec.date||''}.jpg`.replace(/\s+/g,'-');
+  shareImageChoice(blob, fileName, `قياسات${who}`, rec.customerPhone || '');
+}
+document.getElementById('btnMeasShare').addEventListener('click', ()=>{
+  const o = calcToFactoryOrder();
+  if(!o.pieces.length && !o.extras.length){ toast('ما في قياسات'); return; }
+  openFactoryPreview(o);
+});
+document.getElementById('btnShareMeasurementsView').addEventListener('click', ()=>{
+  const rec = measurementsList.find(r=>r.id===currentViewedMeasurementId);
+  if(!rec) return;
+  document.getElementById('measurementsViewOverlay').classList.remove('show');
+  openFactoryPreview(calcToFactoryOrder(rec.tables, rec.customerName||'', rec.date));
+});
 
 renderMeasTables();
 
 // يقرر تلقائيًا قبل الطباعة إذا المحتوى كبير (يحتاج خط مضغوط) أو صغير (يبقى بالحجم المريح)،
 // بالاعتماد على عدد صفوف الجدول الفعلي بالنافذة الظاهرة وقت الطباعة فقط.
+// الطباعة: الحجم العادي (خط ولوغو كبار) دايماً، وإذا التفاصيل كتيرة وما بتساع بورقة وحدة
+// بيصغّر الصفحة كلها بالنسبة المطلوبة بالضبط لحتى تبقى بصفحة وحدة.
+const PRINT_PAGE_W = 718;   // عرض A4 بعد هوامش 10mm (px)
+const PRINT_PAGE_H = 1000;  // ارتفاع A4 بعد الهوامش مع شوية أمان (px)
+let printZoomEls = [];
 window.addEventListener('beforeprint', ()=>{
-  const activeOverlay = document.querySelector('.overlay.show');
-  const rowCount = activeOverlay ? activeOverlay.querySelectorAll('tbody tr').length : 0;
-  document.body.classList.toggle('print-compact', rowCount > 14);
+  document.body.classList.remove('print-compact');
+  printZoomEls = [];
+  document.querySelectorAll('.overlay.show .modal-body').forEach(body=>{
+    const oldW = body.style.width, oldMax = body.style.maxHeight, oldOv = body.style.overflow;
+    body.style.width = PRINT_PAGE_W + 'px'; body.style.maxHeight = 'none'; body.style.overflow = 'visible';
+    const h = body.scrollHeight * 1.0;
+    // اللوغو واسم الشركة (رأس الورقة) ما بيصغروا أكتر من 80%، والتصغير الباقي بيتوزّع على التفاصيل
+    const head = body.querySelector('.receipt-top');
+    const headH = head ? head.offsetHeight : 0;
+    body.style.width = oldW; body.style.maxHeight = oldMax; body.style.overflow = oldOv;
+    let scale = Math.min(1, PRINT_PAGE_H / h);
+    const MIN_HEAD = 0.8;
+    // أكتر من 20 بند (أو بدها تصغير كتير): ما منصغّر — بيكمّل على صفحات، بنفس الرأس ورقم الوصل بكل صفحة
+    const rowsCount = body.querySelectorAll('td.row-no').length;
+    if(rowsCount > 20 || (scale < 0.6 && rowsCount > 0)){ document.body.classList.add('print-multipage'); return; }
+    if(scale < 1){
+      let headScale = scale;
+      if(head && scale < MIN_HEAD && h > headH){
+        headScale = MIN_HEAD;
+        scale = Math.max(0.2, (PRINT_PAGE_H - headH*MIN_HEAD) / (h - headH));
+      }
+      body.style.zoom = scale.toFixed(3); printZoomEls.push(body);
+      if(head && headScale > scale){ head.style.zoom = (headScale/scale).toFixed(3); printZoomEls.push(head); }
+    }
+  });
 });
 window.addEventListener('afterprint', ()=>{
-  document.body.classList.remove('print-compact');
+  document.body.classList.remove('print-multipage');
+  printZoomEls.forEach(el=>{ el.style.zoom = ''; });
+  printZoomEls = [];
 });
 
 function renderDashboard(){
@@ -3863,7 +5141,7 @@ function renderCustomerReports(){
         const details = (r.items||[]).map(it=>it.desc).filter(Boolean).join('، ') || '—';
         return `<tr>
           <td>${r.name}</td>
-          <td>${details}</td>
+          <td class="wrap-cell"><div class="details-wrap">${details}</div></td>
           <td>${r.date||''}</td>
           <td>${r.duration} يوم</td>
           <td>${deliveryDate}</td>
@@ -3899,7 +5177,7 @@ function renderCustomerReports(){
           : `<span style="color:var(--verdigris-deep); font-weight:700;">مدفوع</span>`;
         return `<tr>
           <td>${r.name}</td>
-          <td>${details}</td>
+          <td class="wrap-cell"><div class="details-wrap">${details}</div></td>
           <td>${r.phone||'—'}</td>
           <td>${r.date||''}</td>
           <td>${r.deliveredDate||'—'}</td>
@@ -3907,6 +5185,7 @@ function renderCustomerReports(){
           <td>${paymentStatus}</td>
           <td>
             <div class="row-actions">
+              <button class="btn btn-sm btn-ghost" onclick="viewReceipt('${r.id}')" title="عرض/طباعة">👁</button>
               <button class="btn btn-sm btn-ghost" onclick="editReceipt('${r.id}')" title="تعديل">✎</button>
             </div>
           </td>
@@ -3947,14 +5226,16 @@ function renderPaymentHistoryTable(){
   }
   const totalAmount = list.reduce((s,h)=>s+(Number(h.amount)||0), 0);
   let html = `<table><thead><tr>
-    <th>التاريخ</th><th>الوقت</th><th>الزبون</th><th>المبلغ</th><th>المستند</th><th>طريقة الدفع</th><th style="width:50px"></th>
+    <th>التاريخ</th><th>الوقت</th><th>الزبون</th><th>تفاصيل</th><th>المبلغ</th><th>المستند</th><th>طريقة الدفع</th><th style="width:50px"></th>
   </tr></thead><tbody>`;
   list.forEach(h=>{
-    const loggedTime = h.loggedAt ? new Date(h.loggedAt).toLocaleTimeString('ar-DZ-u-nu-latn', {hour:'2-digit', minute:'2-digit'}) : '—';
+    const loggedTime = h.loggedAt ? fmtTimeLatn(h.loggedAt) : '—';
+    const detailsFull = h.details || '—';
     html += `<tr>
       <td>${h.date||'—'}</td>
       <td>${loggedTime}</td>
       <td>${h.customerName||'—'}</td>
+      <td class="wrap-cell"><div class="details-wrap">${detailsFull}</div></td>
       <td>${fmt(h.amount)}</td>
       <td>${h.docType||''} ${h.docNo?'#'+h.docNo:''}</td>
       <td>${h.method||'—'}</td>
@@ -3982,7 +5263,7 @@ document.getElementById('btnPrintPaymentHistory').addEventListener('click', ()=>
   const list = getFilteredPaymentHistory();
   if(list.length === 0){ toast('لا توجد دفعات لطباعتها'); return; }
   const rows = list.map(h=>{
-    const loggedTime = h.loggedAt ? new Date(h.loggedAt).toLocaleTimeString('ar-DZ-u-nu-latn', {hour:'2-digit', minute:'2-digit'}) : '';
+    const loggedTime = h.loggedAt ? fmtTimeLatn(h.loggedAt) : '';
     const docPart = h.docType ? `${h.docType}${h.docNo?' #'+h.docNo:''}` : '';
     return {
       date: h.date || '',
@@ -4012,7 +5293,7 @@ function showLedger(title, rows){
               <img src="${settings.logo}" style="width:60px; height:60px;">
               <div>
                 <div class="name" style="font-size:16px;">${settings.companyName}</div>
-                <div class="meta" style="font-size:12px;">${title} — ${new Date().toLocaleDateString('ar-DZ-u-nu-latn')}</div>
+                <div class="meta" style="font-size:12px;">${title} — ${fmtDateLatn(new Date())}</div>
               </div>
             </div>
           </div>
@@ -4062,7 +5343,7 @@ document.getElementById('btnPrintExpenseLedger').addEventListener('click', ()=>{
 
 document.getElementById('btnPrintLedger').addEventListener('click', ()=>window.print());
 
-document.getElementById('todayDate').textContent = new Date().toLocaleDateString('ar-DZ-u-nu-latn', {year:'numeric', month:'2-digit', day:'2-digit'});
+document.getElementById('todayDate').textContent = fmtDateLatn(new Date());
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
