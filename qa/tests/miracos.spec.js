@@ -425,3 +425,236 @@ test.describe('الزبائن والفواتير على الجوال والكم�
     });
   }
 });
+
+// ---- صورة المنتج بالوصل وبالطلبية (بيانات وهمية، بلا سحابة) ----
+test.describe('صورة المنتج', () => {
+  // صورة PNG كبيرة (2400×1600) لتجربة الضغط والتصغير
+  const bigPng = async page => Buffer.from(await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 2400; c.height = 1600; const x = c.getContext('2d');
+    for (let i = 0; i < 40; i++) { x.fillStyle = `hsl(${i * 9},60%,50%)`; x.fillRect(i * 60, 0, 60, 1600); } return c.toDataURL('image/png').split(',')[1]; }), 'base64');
+  test('إضافة صورة → بتنحفظ مع الوصل، بتطلع بالورقة ≤ 10×10 سم مع اسم المنتج، والوصل القصير ورقة وحدة', async ({ page }) => {
+    await page.evaluate(() => { document.getElementById('loginScreen').style.display = 'none'; openReceiptModal(null);
+      document.getElementById('rcpName').value = 'زبون صورة'; const r = document.querySelector('#itemsBody tr');
+      r.querySelector('.it-desc').value = 'شمينة رخام بيج 180×120 سم'; r.querySelector('.it-qty').value = 1; r.querySelector('.it-price').value = 250000; recalcTotals(); });
+    const btn = page.locator('#receiptOverlay [data-ph-add]');
+    await expect(btn).toHaveText(/إضافة صورة/);
+    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), btn.click()]);
+    await chooser.setFiles({ name: 'p.png', mimeType: 'image/png', buffer: await bigPng(page) });
+    await expect(page.locator('#receiptOverlay [data-ph-list] img')).toHaveCount(1);
+    // الاسم بينحط تلقائياً من أول بند، وبيقدر يعدّله
+    await expect(page.locator('#receiptOverlay [data-ph-cap="0"]')).toHaveValue('شمينة رخام بيج 180×120 سم');
+    await page.click('#btnSaveReceipt');
+    await expect(page.locator('#receiptOverlay')).not.toHaveClass(/show/);
+    const id = await page.evaluate(() => receipts.find(r => r.name === 'زبون صورة').id);
+    const saved = await page.evaluate(id => receipts.find(r => r.id === id).productPhotos, id);
+    expect(saved.length).toBe(1); expect(saved[0].id).toMatch(/^mirsam_drw_/);
+    // الصورة الكبيرة (2400×1600) انضغطت: أقل من 380KB
+    expect(await page.evaluate(() => document.querySelector('#receiptOverlay [data-ph-list] img').src.length)).toBeLessThan(380000);
+    await page.evaluate(id => viewReceipt(id), id);
+    const im = page.locator('#receiptPrintArea .prod-photo-block img');
+    await expect(im).toBeVisible();
+    await expect(page.locator('#receiptPrintArea .prod-photo-block .cap')).toHaveText('شمينة رخام بيج 180×120 سم');
+    await page.emulateMedia({ media: 'print' });
+    const box = await im.boundingBox();
+    expect(box.width).toBeLessThanOrEqual(378 + 1); expect(box.height).toBeLessThanOrEqual(378 + 1); // 100mm = 378px
+    expect(Math.abs(box.width / box.height - 1.5)).toBeLessThan(0.02); // بلا تشويه
+    const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+    expect(pdfPages(pdf)).toBe(1);
+    expect(pdf.toString('latin1')).toMatch(/\/Subtype\s*\/Image/);
+  });
+  test('تحويل الوصل لـ Devis وإرساله للمعمل: نفس الصورة (نفس الرقم) بلا نسخة جديدة', async ({ page }) => {
+    const out = await page.evaluate(() => {
+      const r = { id: 'pr1', no: 501, name: 'زبون', phone: '', date: '2026-10-20', items: [{ qty: 1, desc: 'نافورة', price: 1, amount: 1 }], total: 1, discount: 0, remaining: 1, payments: [],
+        productPhotos: [{ id: 'mirsam_drw_x1', caption: 'نافورة 120 سم' }] };
+      receipts.push(r);
+      const d = docFromReceipt(r); convertDocTo('simple', d);
+      return { doc: d.photos, form: [...document.querySelectorAll('#invoiceOverlay [data-ph-list] [data-ph-cap]')].map(t => t.value) };
+    });
+    expect(out.doc).toEqual([{ id: 'mirsam_drw_x1', caption: 'نافورة 120 سم' }]);
+    expect(out.form).toEqual(['نافورة 120 سم']);
+  });
+});
+
+test('حالات الطلبية الخمسة، وتأخر الاستلام بالأحمر حسب عدد الأيام بالإعدادات، والتسليم بيوقف العلامة', async ({ page }) => {
+  const day = 864e5, now = Date.now();
+  const r = await page.evaluate(({ day, now }) => {
+    settings.pickupLateDays = 5;
+    const no = window.__fjobsTest([
+      { id: 'a', no: 1, status: 'بدون تنفيذ', at: 1 },
+      { id: 'b', no: 2, status: 'قيد التنفيذ', at: 2 },
+      { id: 'c', no: 3, status: 'تم التنفيذ', at: 3, doneAt: now - 2 * day },                // خلصت من يومين: مش متأخرة
+      { id: 'd', no: 4, status: 'جاهزة للاستلام', at: 4, doneAt: now - 9 * day, notifiedAt: now - 6 * day, cust: { name: 'متأخر' } }, // انبلّغ من 6 أيام: متأخرة
+      { id: 'e', no: 5, status: 'تم التسليم', at: 5, doneAt: now - 30 * day, notifiedAt: now - 29 * day, deliveredAt: now - 1 * day }, // انسلّمت: لا
+    ]);
+    const late = [...document.querySelectorAll('#view-fjobs [data-late="1"]')].length;
+    const hd = [...document.querySelectorAll('#view-fjobs [data-sthd]')].map(h => h.textContent.replace(/[^؀-ۿ ]/g, '').trim());
+    const opts = [...document.querySelectorAll('#view-fjobs select[data-f] option')].map(o => o.value);
+    const panel = document.getElementById('latePickupPanel');
+    const st = window.__orderStatus;
+    return { late, hd, opts, panelShown: panel.style.display !== 'none', panelText: panel.innerText,
+      norm: ['جاهز', 'تم التسليم', 'تم التنفيذ', 'شي غلط'].map(st.normSt) };
+  }, { day, now });
+  expect(r.hd).toEqual(['بدون تنفيذ', 'قيد التنفيذ', 'تم التنفيذ', 'جاهزة للاستلام', 'تم التسليم']);
+  expect(r.late).toBe(1);
+  expect(r.panelShown).toBe(true);
+  expect(r.panelText).toContain('متأخر');
+  expect(r.panelText).toContain('من 6 يوم');
+  expect(r.opts).toEqual(expect.arrayContaining(['قيد التنفيذ', 'تم التنفيذ', 'جاهزة للاستلام', 'تم التسليم', 'late']));
+  // «تم التسليم» بتضل «تم التسليم» (ما بتنقلب «تم التنفيذ»)، و«جاهز» القديمة = جاهزة للاستلام
+  expect(r.norm).toEqual(['جاهزة للاستلام', 'تم التسليم', 'تم التنفيذ', 'بدون تنفيذ']);
+});
+
+// ---- تحويل Devis لوصل: الدفعة بتنتقل (ما بتختفي وما بتنحسب مرتين) ----
+test.describe('تحويل Devis إلى وصل مع الدفعات', () => {
+  const run = (page, paid) => page.evaluate(async paid => {
+    document.getElementById('loginScreen').style.display = 'none';
+    const inv = { id: 'dv1', docType: 'simple', no: 'S0099', date: '2026-10-01', clientName: 'زبون الدوفي', clientPhone: '0550', clientAddress: '',
+      items: [{ qty: 1, desc: 'نافورة رخام', unit: '', price: 100000, amount: 100000 }], ht: 100000, tva: 0, ttc: 100000,
+      payments: paid ? [{ id: 'pmD', date: '2026-10-02', amount: paid, method: 'نقدي' }] : [], remaining: 100000 - paid };
+    invoices.push(inv);
+    if (paid) paymentHistory.push({ id: 'h1', paymentId: 'pmD', loggedAt: '2026-10-02T10:00:00Z', date: '2026-10-02', customerName: 'زبون الدوفي', amount: paid, method: 'نقدي', docType: 'Devis', docNo: 'S0099' });
+    const sumAll = () => receipts.reduce((s, r) => s + getReceiptPayments(r).reduce((a, p) => a + Number(p.amount), 0), 0) + invoices.reduce((s, i) => s + (i.payments || []).reduce((a, p) => a + Number(p.amount), 0), 0);
+    const before = sumAll();
+    window.confirm = () => true;
+    convertInvoiceToReceipt('dv1');
+    const formRemaining = document.getElementById('paymentsBody').querySelectorAll('tr').length;
+    const fromLabel = (document.querySelector('#paymentsBody .pm-from') || {}).textContent || '';
+    // ضغط الحفظ مرتين بسرعة
+    document.getElementById('btnSaveReceipt').click(); document.getElementById('btnSaveReceipt').click();
+    await new Promise(r => setTimeout(r, 400));
+    const rcps = receipts.filter(r => r.name === 'زبون الدوفي');
+    const r = rcps[0], v = invoices.find(i => i.id === 'dv1');
+    // تحويل تاني لنفس الدوفي: ما في دفعات بتنتقل مرة تانية
+    convertInvoiceToReceipt('dv1');
+    const second = document.getElementById('paymentsBody').querySelectorAll('tr').length;
+    document.getElementById('receiptOverlay').classList.remove('show');
+    viewInvoice('dv1');
+    return { receipts: rcps.length, rPays: getReceiptPayments(r), rRemaining: r.remaining, vPays: v.payments, vMoved: (v.movedPayments || []).map(p => [p.id, p.amount, p.date, p.toReceiptNo]),
+      conv: v.convertedTo && v.convertedTo.receiptNo === r.no, before, after: sumAll(), hist: paymentHistory.filter(h => h.paymentId === 'pmD').map(h => [h.docType, h.amount, h.date]),
+      formRemaining, fromLabel, second, invView: document.getElementById('invoicePrintArea').innerText };
+  }, paid);
+
+  test('دوفي 100,000 عليه دفعة 30,000 → الوصل: الدفعة نفسها والباقي 70,000، والمجموع ما تغيّر', async ({ page }) => {
+    const r = await run(page, 30000);
+    expect(r.receipts).toBe(1);                       // ضغطتين على الحفظ = وصل واحد
+    expect(r.rPays.length).toBe(1);
+    expect(r.rPays[0]).toMatchObject({ id: 'pmD', date: '2026-10-02', amount: 30000, method: 'نقدي' });
+    expect(r.rRemaining).toBe(70000);
+    expect(r.vPays).toEqual([]);                      // ما بتنحسب مرتين
+    expect(r.vMoved).toEqual([['pmD', 30000, '2026-10-02', r.vMoved[0][3]]]);
+    expect(r.conv).toBe(true);
+    expect(r.after).toBe(r.before);                   // مجموع المقبوضات بلوحة التحكم نفسه
+    expect(r.hist).toEqual([['وصل', 30000, '2026-10-02']]); // سطر واحد بالسجل، صار يشاور عالوصل
+    expect(r.fromLabel).toContain('Devis رقم S0099');
+    expect(r.second).toBe(0);                         // التحويل التاني ما بينقل الدفعة مرة تانية
+    expect(r.invView).toContain('انتقلت للوصل رقم');
+  });
+  test('دوفي بلا دفعة → وصل بلا دفعات والباقي 100,000', async ({ page }) => {
+    const r = await run(page, 0);
+    expect(r.rPays).toEqual([]); expect(r.rRemaining).toBe(100000); expect(r.after).toBe(r.before);
+  });
+  test('دوفي مدفوع بالكامل → الوصل مدفوع بالكامل والباقي 0', async ({ page }) => {
+    const r = await run(page, 100000);
+    expect(r.rPays.length).toBe(1); expect(r.rRemaining).toBe(0); expect(r.vPays).toEqual([]); expect(r.after).toBe(r.before);
+  });
+});
+
+test('تقرير الدفعات المشكوك فيها: بيلقط التكرار الحقيقي والمشتبه، وما بيعدّل أي بيانات', async ({ page }) => {
+  const r = await page.evaluate(() => {
+    const R = [
+      { id: 'r1', no: 10, name: 'أحمد', total: 100000, remaining: 70000, payments: [{ id: 'P1', date: '2026-10-02', amount: 30000 }] },          // نفس P1 على الدوفي كمان
+      { id: 'r2', no: 11, name: 'سمير', total: 50000, remaining: 20000, payments: [{ id: 'P2', date: '2026-10-03', amount: 30000 }] },          // تحويل قديم: انعادت كتابتها
+      { id: 'r3', no: 12, name: 'كريم', total: 40000, remaining: 0, payments: [{ id: 'P3', date: '2026-10-05', amount: 20000 }, { id: 'P4', date: '2026-10-05', amount: 20000 }] },
+      { id: 'r4', no: 13, name: 'نظيف', total: 10000, remaining: 5000, payments: [{ id: 'P5', date: '2026-10-06', amount: 5000 }] },
+      { id: 'r5', no: 14, name: 'غلط بالباقي', total: 10000, remaining: 10000, payments: [{ id: 'P6', date: '2026-10-07', amount: 4000 }] },
+    ];
+    const I = [
+      { id: 'i1', docType: 'simple', no: 'S1', clientName: 'أحمد', ttc: 100000, remaining: 70000, payments: [{ id: 'P1', date: '2026-10-02', amount: 30000 }] },
+      { id: 'i2', docType: 'simple', no: 'S2', clientName: 'سمير', ttc: 50000, remaining: 20000, convertedTo: { receiptNo: 11 }, payments: [{ id: 'Q2', date: '2026-10-01', amount: 30000 }] },
+    ];
+    const H = [...R, ...I].flatMap(d => d.payments.map(p => ({ id: 'h' + p.id + d.id, paymentId: p.id, amount: p.amount, date: p.date, customerName: d.name || d.clientName, docType: d.no && d.clientName ? 'Devis' : 'وصل', docNo: d.no })));
+    const snap = JSON.stringify([R, I, H]);
+    const out = computePaymentAudit(R, I, H);
+    return { out, untouched: snap === JSON.stringify([R, I, H]) };
+  });
+  expect(r.untouched).toBe(true);
+  const has = (lvl, name, rx) => r.out.some(x => x.level === lvl && x.name === name && rx.test(x.why));
+  expect(has('مؤكد', 'أحمد', /نفس الدفعة/)).toBe(true);
+  expect(has('مشتبه', 'سمير', /تحوّل للوصل 11/)).toBe(true);
+  expect(has('مشتبه', 'كريم', /نفس المبلغ ونفس التاريخ مرتين/)).toBe(true);
+  expect(has('غير مطابق', 'غلط بالباقي', /الباقي المحفوظ/)).toBe(true);
+  expect(r.out.some(x => x.name === 'نظيف')).toBe(false);
+  // كل سطر فيه الأعمدة المطلوبة
+  for (const x of r.out) for (const k of ['ref', 'name', 'devNo', 'rcpNo', 'amount', 'date', 'why']) expect(x).toHaveProperty(k);
+  // الواجهة بتفتح وفيها العناوين المطلوبة
+  await page.evaluate(() => { receipts.push({ id: 'ux', no: 90, name: 'س', total: 10, remaining: 0, payments: [{ id: 'D', date: '2026-10-01', amount: 10 }] });
+    invoices.push({ id: 'uy', docType: 'simple', no: 'S9', clientName: 'س', ttc: 10, remaining: 0, payments: [{ id: 'D', date: '2026-10-01', amount: 10 }] });
+    document.getElementById('btnPaymentAudit').click(); });
+  const head = await page.locator('#paymentAuditOverlay').innerText();
+  for (const t of ['رقم السجل', 'اسم الزبون', 'رقم الدوفي', 'رقم الوصل', 'قيمة الدفعة', 'تاريخ الدفعة', 'سبب الاشتباه', 'قراءة فقط']) expect(head).toContain(t);
+});
+
+test.describe('البحث الشامل', () => {
+  const seed = page => page.evaluate(() => {
+    document.getElementById('loginScreen').style.display = 'none';
+    receipts.push({ id: 'g1', no: 321, name: 'عبد الرحمن بلقاسم', phone: '0550 12 34 56', address: 'الشراقة', date: '2026-10-01', items: [{ qty: 1, desc: 'نافورة موديل F-204 رخام بيج', price: 1, amount: 1 }], total: 1, remaining: 0, payments: [] });
+    receipts.push({ id: 'g2', no: 322, name: 'فاطمة الزهراء', phone: '+213 661 00 11 22', address: 'دالي ابراهيم', date: '2026-10-02', items: [{ qty: 1, desc: 'شمينة رخام', price: 1, amount: 1 }], total: 1, remaining: 0, payments: [] });
+    invoices.push({ id: 'g3', docType: 'simple', no: 'S0450', date: '2026-10-03', clientName: 'عبدالرحمن بلقاسم', clientPhone: '0550123456', clientAddress: '', items: [{ qty: 1, desc: 'جرن حمام', unit: '', price: 1, amount: 1 }], ttc: 1, remaining: 1, payments: [] });
+    priceCategories.push({ id: 'c1', name: 'نوافير' }); priceList.push({ id: 'p1', categoryId: 'c1', type: 'نافورة F-204', measurement: '120 سم', color: 'بيج', price: 90000 });
+  });
+  const titles = (page, q) => page.evaluate(q => globalSearch(q).map(x => x.type + ':' + x.title), q);
+
+  test('رقم الموديل بيجيب المنتج والوصل المرتبطين فيه', async ({ page }) => {
+    await seed(page);
+    const r = await titles(page, 'f204');
+    expect(r.some(t => t.startsWith('وصل:وصل 321'))).toBe(true);
+    expect(r.some(t => t.startsWith('منتج / موديل:'))).toBe(true);
+  });
+  test('الهاتف بأي كتابة (مسافات، 0 أو 213+، أرقام عربية) بيجيب الوصل والدوفي', async ({ page }) => {
+    await seed(page);
+    for (const q of ['0550123456', '550 12 34 56', '+213550123456', '٠٥٥٠١٢٣٤٥٦']) {
+      const r = await titles(page, q);
+      expect(r.some(t => t.includes('وصل 321')), q).toBe(true);
+      expect(r.some(t => t.includes('Devis S0450')), q).toBe(true);
+    }
+    expect((await titles(page, '661001122')).some(t => t.includes('وصل 322'))).toBe(true);
+  });
+  test('الاسم مع اختلاف المسافات والهمزة، ورقم الدوفي والوصل والعنوان', async ({ page }) => {
+    await seed(page);
+    const r = await titles(page, 'عبدالرحمن');
+    expect(r.some(t => t.includes('وصل 321'))).toBe(true); expect(r.some(t => t.includes('S0450'))).toBe(true);
+    expect((await titles(page, 'فاطمه')).some(t => t.includes('وصل 322'))).toBe(true);
+    expect((await titles(page, 's0450')).length).toBe(1);
+    expect((await titles(page, '٣٢٢')).some(t => t.includes('وصل 322'))).toBe(true);
+    expect((await titles(page, 'دالي إبراهيم')).some(t => t.includes('وصل 322'))).toBe(true);
+  });
+  test('خانة البحث على لوحة التحكم بتعرض النتائج وبتفتح الوصل، وبلا تمرير أفقي على الجوال', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await seed(page);
+    await page.fill('#globalSearchInput', 'بلقاسم');
+    await expect(page.locator('#globalSearchResults [data-gs]')).toHaveCount(2);
+    await page.locator('#globalSearchResults [data-gs]').first().click();
+    await expect(page.locator('#viewReceiptOverlay.show, #viewInvoiceOverlay.show')).toHaveCount(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  });
+});
+
+test('لوحة واتساب: بتفرّق بين التواصلات والزبائن (نفس الرقم بأي كتابة = زبون واحد)، وبتقول بوضوح إنها مش من واتساب نفسه', async ({ page }) => {
+  test.skip(await page.evaluate(() => FS_DOC === 'factory'), 'المعمل ما بيشوف أرقام الزبائن — اللوحة بالمعرض بس');
+  const r = await page.evaluate(() => {
+    const today = localDate(), mo = today.slice(0, 7) + '-01' === today ? today : today.slice(0, 7) + '-01';
+    const L = [
+      { id: 'a', phone: '0550 12 34 56', name: 'أحمد', date: today, at: 3 },
+      { id: 'b', phone: '+213550123456', name: 'أحمد', date: today, at: 2 },   // نفس الزبون
+      { id: 'c', phone: '0661 00 11 22', name: 'سمير', date: mo, at: 1 },
+      { id: 'd', phone: '0770 99 88 77', name: 'قديم', date: '2025-01-05', at: 0 },
+    ];
+    window.__waTest(L);
+    return { st: waStats(L), text: document.getElementById('waPanel').innerText };
+  });
+  expect(r.st.allContacts).toBe(4); expect(r.st.allCustomers).toBe(3);
+  expect(r.st.dayContacts).toBe(r.st.dayCustomers === 1 ? 2 : r.st.dayContacts); expect(r.st.dayCustomers).toBeGreaterThanOrEqual(1);
+  expect(r.st.monthCustomers).toBeGreaterThanOrEqual(1);
+  expect(r.text).toContain('مش العدد الحقيقي');
+  expect(r.text).toContain('3 زبون');
+  expect(r.text).toContain('4 تواصل');
+});
