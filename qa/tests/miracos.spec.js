@@ -1468,3 +1468,44 @@ test('سجل المصروف والدخل: 22 سطر بكل صفحة، من ال�
   expect(r.foot).toBe('الصفحة الأخيرة 3 من 3');
   expect(r.qr).toBe(true);
 });
+
+test('الطلبيات المتأخرة: بلا «خلصت / انبلّغ الزبون»، وأيام التأخير بالأحمر بس', async ({ page }) => {
+  const r = await page.evaluate(() => {
+    window.__fjobsShow();
+    const old = new Date('2026-10-31T12:00').getTime();
+    window.__fjobsTest([
+      { id: 'L', no: 7, status: 'جاهزة للاستلام', at: old, doneAt: old, notifiedAt: old, items: [{ qty: '1', desc: 'جرن' }], cust: { name: 'متأخر' } },
+      { id: 'N', no: 8, status: 'تم التنفيذ', at: Date.now(), doneAt: Date.now(), items: [], cust: { name: 'جديد' } }]);
+    const t = id => document.querySelector(`#view-fjobs [data-job="${id}"]`).innerText;
+    const badge = [...document.querySelectorAll('#view-fjobs [data-job="L"] span')].find(s => /استلم من/.test(s.textContent));
+    return { late: t('L'), fresh: t('N'), red: badge && getComputedStyle(badge).backgroundColor };
+  });
+  expect(r.late).not.toContain('خلصت');
+  expect(r.late).not.toContain('انبلّغ الزبون');
+  expect(r.late).toMatch(/من \d+ يوم/);
+  expect(r.red).toBe('rgb(192, 57, 43)');
+  expect(r.fresh).toContain('خلصت');
+});
+
+test('طباعة الطلبيات للمعمل: بدون تنفيذ وقيد التنفيذ بس، بورقة وحدة بلا أسعار', async ({ page }) => {
+  await page.evaluate(() => {
+    window.__fjobsShow();
+    window.__fjobsTest([
+      { id: 'a', no: 1, status: 'قيد التنفيذ', at: 2, items: [{ qty: '2', desc: 'عامود رخام' }], cust: { name: 'زبون أ', phone: '0555' } },
+      { id: 'b', no: 2, status: 'بدون تنفيذ', at: 3, items: [{ qty: '1', desc: 'جرن' }], note: 'لون بيج', cust: { name: 'زبون ب' } },
+      { id: 'c', no: 3, status: 'تم التنفيذ', at: 1, items: [{ qty: '1', desc: 'درج' }], cust: { name: 'زبون ج' } },
+      { id: 'd', no: 4, status: 'تم التسليم', at: 1, items: [], cust: { name: 'زبون د' } }]);
+  });
+  const [pop] = await Promise.all([page.waitForEvent('popup'), page.evaluate(() => document.querySelector('#view-fjobs [data-pall]').click())]);
+  await pop.waitForLoadState();
+  const txt = await pop.locator('body').innerText();
+  expect(await pop.locator('.ord').count()).toBe(2);
+  expect(txt).toContain('زبون أ'); expect(txt).toContain('زبون ب'); expect(txt).toContain('لون بيج');
+  expect(txt).not.toContain('زبون ج'); expect(txt).not.toContain('زبون د'); expect(txt).not.toContain('0555');
+  expect(txt).not.toMatch(/[٠-٩]/);
+  const order = await pop.locator('.ord .on').allInnerTexts();
+  expect(order).toEqual(['طلبية ط-002', 'طلبية ط-001']);
+  await pop.emulateMedia({ media: 'print' });
+  const pdf = await pop.pdf({ preferCSSPageSize: true, printBackground: true });
+  expect((pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length).toBe(1);
+});
