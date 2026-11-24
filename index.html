@@ -497,6 +497,8 @@
     .mirsam-stats{ font-size:17px !important; }
     .mirsam-stats td{ padding:5px 8px !important; }
     .overlay.show:not([data-multipage]) .modal{ padding:10mm 10mm 8mm !important; box-sizing:border-box !important; }
+    /* شبكة أمان: إذا ورقة الصفحة الوحدة طلعت أطول من ورقة، ما يتكرر اللوغو والرأس كامل بالورقة التانية */
+    .overlay.show:not([data-multipage]) thead{ display:table-row-group !important; }
     .mirsam-print[style*="break-before: page"]{ padding-top:10mm !important; }
     @page multi{ size:A4 portrait; margin:10mm 10mm 14mm; @bottom-center{ content: "صفحة " counter(page) " من " counter(pages); font-family: Arial, sans-serif; font-size:11px; color:#555; } }
   }
@@ -6418,9 +6420,15 @@ function measurePrintLayout(ov){
       fr.remove();
     };
     const imgs = [...d.images].filter(im=>!im.complete);
-    const fontsReady = (d.fonts && d.fonts.ready) ? d.fonts.ready : Promise.resolve();
+    // الخطوط لازم تكون محمّلة قبل القياس: بالخط الاحتياطي الورقة بتطلع أقصر، فبينحسب تصغير قليل وبتنكسر على ورقتين
+    // (هيك طلع الوصل #091: آخر سطر والمجموع بورقة تانية مع اللوغو من جديد وبلا ترقيم)
+    const sheetLoaded = l=> new Promise(r=>{ try{ if(l.sheet) return r(); }catch(e){} l.addEventListener('load', r, {once:true}); l.addEventListener('error', r, {once:true}); });
+    const fontsReady = Promise.all([...d.querySelectorAll('link[rel="stylesheet"]')].map(sheetLoaded)).then(()=>{
+      if(!d.fonts) return;
+      return Promise.all(['400 16px "IBM Plex Sans Arabic"','700 16px "IBM Plex Sans Arabic"','700 16px "Tajawal"','800 16px "Tajawal"'].map(f=>d.fonts.load(f, 'ا').catch(()=>{}))).then(()=>d.fonts.ready);
+    });
     Promise.all([fontsReady, ...imgs.map(im=>new Promise(r=>{ im.onload = im.onerror = r; }))]).then(()=>requestAnimationFrame(finish));
-    setTimeout(finish, 1500);
+    setTimeout(finish, 6000);
   });
 }
 
@@ -6602,13 +6610,15 @@ function fitPrintWhenReady(ov){
   ov.__fitReady = fitPrintOverlay(ov);
   const imgs = [...ov.querySelectorAll('img')].filter(im=>!im.complete && !im.closest('.print-sheets'));
   imgs.forEach(im=>{ im.addEventListener('load', ()=>fitPrintOverlay(ov), {once:true}); im.addEventListener('error', ()=>fitPrintOverlay(ov), {once:true}); });
+  // إذا الخطوط لسا عم تتحمّل لما انفتحت الورقة: منعيد الحساب بعد ما تخلص
+  if(document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(()=>{ if(ov.classList.contains('show')) fitPrintOverlay(ov); });
 }
 window.fitPrintWhenReady = fitPrintWhenReady;
 // طباعة بعد ما يخلص حساب حجم الورقة (حتى ما تنطبع قبل التصغير)
 function printWhenFit(ovId){
   setTimeout(async ()=>{
     const ov = document.getElementById(ovId);
-    try{ if(ov && ov.__fitReady) await Promise.race([ov.__fitReady, new Promise(r=>setTimeout(r, 2500))]); }catch(e){}
+    try{ if(ov && ov.__fitReady) await Promise.race([ov.__fitReady, new Promise(r=>setTimeout(r, 6500))]); }catch(e){}
     window.print();
   }, 50);
 }
@@ -6617,7 +6627,7 @@ function printWhenFit(ovId){
   window.print = function(){
     const busy = [...document.querySelectorAll('.overlay.show')].map(o=>o.__fitBusy).filter(Boolean);
     if(!busy.length) return _p0();
-    Promise.race([Promise.all(busy), new Promise(r=>setTimeout(r, 2500))]).catch(()=>{}).then(()=>_p0());
+    Promise.race([Promise.all(busy), new Promise(r=>setTimeout(r, 6500))]).catch(()=>{}).then(()=>_p0());
   }; }
 new MutationObserver(muts=>{
   muts.forEach(m=>{ const t = m.target; if(t.classList && t.classList.contains('overlay') && t.classList.contains('show')){
